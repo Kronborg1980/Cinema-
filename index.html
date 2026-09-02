@@ -6,7 +6,6 @@
 <title>Norrona Cinema - Nordic Neon</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<!-- Indlæser flere skrifttyper så der er noget at vælge imellem -->
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@400;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 /* ---------------------------------------------------------------
@@ -17,7 +16,6 @@
 html, body { height:100%; width:100%; background:transparent; }
 body {
   color:#f8fafc;
-  /* Font styres nu via CSS variabler, med Inter som fallback */
   font-family: var(--font-family, 'Inter', Arial, sans-serif);
   overflow:hidden;
   -webkit-font-smoothing:antialiased;
@@ -63,7 +61,6 @@ body {
   background:linear-gradient(90deg, rgba(0,242,254,0), rgba(0,242,254,0.18), rgba(0,242,254,0));
 }
 .show .head { display:flex; align-items:center; }
-/* Størrelser styres nu via variabler */
 .show .time { font-size: var(--sz-time, 2.4vh); font-weight:600; color:#ffffff; line-height:1; letter-spacing:.02em; }
 .show .title { font-size: var(--sz-title, 1.7vh); font-weight:600; color:#ffffff; line-height:1.25; margin-top:.8vh; }
 .show .note { font-size:1.25vh; color:#94a3b4; margin-top:.45vh; letter-spacing:.02em; }
@@ -119,15 +116,21 @@ body {
   position:absolute; left:0; bottom:0; right:17vw;
   height:11vh; min-height:70px;
   background:#000000;
-  display:flex; align-items:stretch; justify-content:center;
+  display:flex; align-items:center; justify-content:center;
 }
 .footbar::before {
   content:""; position:absolute; top:0; left:0; right:0; height:1px;
   background:-webkit-linear-gradient(left, rgba(0,242,254,0), rgba(0,242,254,0.25), rgba(0,242,254,0));
   background:linear-gradient(90deg, rgba(0,242,254,0), rgba(0,242,254,0.25), rgba(0,242,254,0));
 }
+.footbar-inner {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  width: 100%;
+}
 .fmodule {
-  position:relative; display:flex; flex-direction:column; justify-content:center;
+  position:relative; display:flex; flex-direction:column; justify-content:flex-start;
   padding:0 2vw; text-align:center;
 }
 .fmodule::after {
@@ -147,9 +150,22 @@ body {
 .message {
   font-size: var(--sz-msg, 1.8vh); font-weight:500; color:#ffffff; letter-spacing:.01em; line-height:1.2;
   opacity:1; -webkit-transition:opacity .45s; transition:opacity .45s;
+  min-height: 2.4em; /* Låser højden til to linjer tekst så den ikke hopper */
 }
 .message b { color:#00f2fe; font-weight:600; }
 .message.fade { opacity:0; }
+
+/* ---------- MODES ---------- */
+body.mode-rail .footbar { display:none; }
+body.mode-rail .rail { width:100vw; min-width:0; }
+body.mode-bar .rail { display:none; }
+body.mode-bar .footbar { right:0; height:100vh; min-height:0; }
+body.mode-bar .fhead { font-size:9vh; margin-bottom:7vh; }
+body.mode-bar .price { font-size:26vh; }
+body.mode-bar .price em { font-size:13vh; }
+body.mode-bar .message { font-size:17vh; }
+body.mode-bar .finfo { font-size:15vh; }
+body.mode-bar .fmodule { padding:0 3.5vw; }
 
 /* ---------- EDITOR ---------- */
 .editor {
@@ -166,7 +182,6 @@ body.mode-edit .stage { display:none; }
 }
 .editor label { display:block; font-size:11px; color:#94a3b4; margin-bottom:5px; letter-spacing:.04em; }
 
-/* Værktøjstip (Spørgsmålstegn) */
 .help-tip {
   display: inline-block;
   width: 15px; height: 15px;
@@ -610,6 +625,8 @@ template { display:none; }
     var host = $('uiFootbar');
     while (host.firstChild) { host.removeChild(host.firstChild); }
 
+    var inner = el('div', 'footbar-inner');
+
     var prices = data.prices || [];
     var i, v, u;
     for (i = 0; i < prices.length; i++) {
@@ -620,19 +637,21 @@ template { display:none; }
         txt(u, prices[i].unit);
         v.appendChild(u);
       }
-      addModule(host, prices[i].head, v);
+      addModule(inner, prices[i].head, v);
     }
 
     var info = data.info || [];
     for (i = 0; i < info.length; i++) {
       var t = el('div', 'finfo');
       lines(t, info[i].text);
-      addModule(host, info[i].head, t);
+      addModule(inner, info[i].head, t);
     }
 
     var msg = el('div', 'message');
     msg.id = 'uiMessage';
-    addModule(host, data.ticketsHeading || 'Tickets', msg, 'cta');
+    addModule(inner, data.ticketsHeading || 'Tickets', msg, 'cta');
+
+    host.appendChild(inner);
   }
 
   function renderHead() {
@@ -674,7 +693,6 @@ template { display:none; }
   }
 
   function applyLayout() {
-    // Styling og størrelser
     var st = data.style || {};
     document.body.style.setProperty('--font-family', st.fontFamily || "'Inter', Arial, sans-serif");
     document.body.style.setProperty('--sz-title', (st.szTitle || 1.7) + 'vh');
@@ -682,7 +700,6 @@ template { display:none; }
     document.body.style.setProperty('--sz-msg', (st.szMsg || 1.8) + 'vh');
     document.body.style.setProperty('--sz-clock', (st.szClock || 4.0) + 'vh');
 
-    // Layout
     var rWidth = (data.layout && data.layout.railWidth) ? parseFloat(data.layout.railWidth) : 17;
     var bHeight = (data.layout && data.layout.barHeight) ? parseFloat(data.layout.barHeight) : 11;
     
@@ -818,18 +835,15 @@ template { display:none; }
 
     document.body.className = 'mode-edit';
     
-    // Style settings indlæses
     $('edFontFamily').value = (data.style && data.style.fontFamily) ? data.style.fontFamily : "'Inter', Arial, sans-serif";
     $('edSzTitle').value = (data.style && data.style.szTitle) ? data.style.szTitle : '1.7';
     $('edSzTime').value = (data.style && data.style.szTime) ? data.style.szTime : '2.4';
     $('edSzMsg').value = (data.style && data.style.szMsg) ? data.style.szMsg : '1.8';
     $('edSzClock').value = (data.style && data.style.szClock) ? data.style.szClock : '4.0';
 
-    // Layout
     $('edRailWidth').value = (data.layout && data.layout.railWidth) ? data.layout.railWidth : '17';
     $('edBarHeight').value = (data.layout && data.layout.barHeight) ? data.layout.barHeight : '11';
     
-    // Tekster
     $('edHeading').value = data.heading || 'Cinema Programme';
     $('edVenue').value = data.ticketsHeading || 'Tickets';
     $('edTimeHeading').value = data.timeHeading || 'Ship Time \u00b7 Faroe';
