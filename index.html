@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Norr&#246;na Cinema</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&family=Archivo+Narrow:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* ---------------------------------------------------------------
+   MS Norrona - Cinema signage overlay
+   Modes:  (ingen)     = helskaerm overlay, midten er gennemsigtig
+           ?mode=rail  = kun hoejre panel  (til en smal zone)
+           ?mode=bar   = kun bundbjaelken  (til en bred, lav zone)
+           ?edit=1     = redigeringsvaerktoej (kun til PC/telefon)
+   --------------------------------------------------------------- */
+
+html, body { margin:0; padding:0; height:100%; background:transparent; }
+body {
+  font-family:'Archivo','Segoe UI',Arial,sans-serif;
+  color:#F2EDE4;
+  overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+.stage { position:fixed; top:0; left:0; right:0; bottom:0; }
+
+/* ---------- HOEJRE PANEL ---------- */
+.rail {
+  position:absolute; top:0; right:0; bottom:0;
+  width:21vw; min-width:250px;
+  background:#0A0C12;
+  background-image:linear-gradient(180deg,#141926 0%,#0A0C12 55%,#0A0C12 100%);
+  box-shadow:-1px 0 0 rgba(255,176,32,.28), -24px 0 60px rgba(0,0,0,.55);
+  display:flex; flex-direction:column;
+  padding:2.2vh 1.4vw 1.6vh 1.4vw;
+  box-sizing:border-box;
+}
+.rail-head { flex:0 0 auto; padding-bottom:1.6vh; }
+.rail-title {
+  font-family:'Archivo Narrow','Arial Narrow',Arial,sans-serif;
+  font-weight:700; font-size:2.4vh; line-height:1.1; letter-spacing:.01em;
+  margin:0;
+}
+.rail-sub { margin:.5vh 0 0 0; font-size:1.35vh; color:#8A93A6; letter-spacing:.02em; }
+
+.shows { flex:1 1 auto; overflow:hidden; }
+
+.show {
+  position:relative;
+  padding:1.5vh 0 1.5vh 1.1vw;
+  border-top:1px dashed rgba(242,237,228,.14);
+}
+.show:first-child { border-top:none; }
+.show .time {
+  font-family:'Archivo Narrow','Arial Narrow',Arial,sans-serif;
+  font-weight:700; font-size:3.1vh; line-height:1; color:#FFB020;
+  letter-spacing:.01em;
+}
+.show .title {
+  font-size:1.75vh; font-weight:600; line-height:1.22; margin-top:.5vh;
+  color:#F2EDE4;
+}
+.show .note { font-size:1.3vh; color:#8A93A6; margin-top:.35vh; }
+
+.show.is-live { }
+.show.is-live:before {
+  content:''; position:absolute; left:0; top:1.1vh; bottom:1.1vh; width:3px;
+  background:#FFB020; box-shadow:0 0 14px 2px rgba(255,176,32,.55);
+}
+.show.is-live .time { color:#FFD98A; }
+.show.is-past { opacity:.32; }
+.show.is-past .time { color:#8A93A6; }
+
+.badge {
+  display:inline-block; vertical-align:middle; margin-left:.6vw;
+  font-family:'Archivo Narrow','Arial Narrow',Arial,sans-serif;
+  font-size:1.25vh; font-weight:700; letter-spacing:.06em;
+  padding:.35vh .5vw; border-radius:2px;
+  background:#FFB020; color:#0A0C12;
+}
+.badge.soft { background:transparent; color:#8A93A6; box-shadow:inset 0 0 0 1px rgba(138,147,166,.45); }
+
+.bar-progress { height:2px; background:rgba(242,237,228,.14); margin-top:1vh; }
+.bar-progress i { display:block; height:2px; background:#FFB020; }
+
+.rail-foot { flex:0 0 auto; padding-top:1.4vh; border-top:1px solid rgba(242,237,228,.12); }
+.clock {
+  font-family:'Archivo Narrow','Arial Narrow',Arial,sans-serif;
+  font-size:5.4vh; font-weight:700; line-height:1; letter-spacing:.02em;
+}
+.clock-sub { font-size:1.3vh; color:#8A93A6; margin-top:.6vh; }
+
+/* ---------- BUNDBJAELKE ---------- */
+.footbar {
+  position:absolute; left:0; bottom:0;
+  right:21vw;
+  height:11vh; min-height:70px;
+  background:linear-gradient(180deg,rgba(10,12,18,.0) 0%,rgba(10,12,18,.92) 38%,#0A0C12 100%);
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 2.4vw; box-sizing:border-box;
+}
+.prices { display:flex; align-items:center; }
+.price {
+  display:flex; align-items:baseline;
+  padding-right:2.2vw; margin-right:2.2vw;
+  border-right:1px dashed rgba(242,237,228,.22);
+}
+.price:last-child { border-right:none; margin-right:0; padding-right:0; }
+.price b {
+  font-family:'Archivo Narrow','Arial Narrow',Arial,sans-serif;
+  font-size:4vh; font-weight:700; color:#FFB020; line-height:1;
+}
+.price span { font-size:1.6vh; color:#F2EDE4; margin-left:.6vw; }
+.message { font-size:1.9vh; color:#F2EDE4; text-align:right; max-width:46%; opacity:1; transition:opacity .5s; }
+.message.fade { opacity:0; }
+
+/* ---------- MODES ---------- */
+body.mode-rail .footbar { display:none; }
+body.mode-rail .rail { width:100vw; min-width:0; box-shadow:none; }
+body.mode-bar .rail { display:none; }
+body.mode-bar .footbar { right:0; height:100vh; background:#0A0C12; }
+
+/* ---------- EDITOR ---------- */
+.editor {
+  display:none; position:fixed; inset:0; overflow:auto;
+  background:#0A0C12; color:#F2EDE4; padding:28px; box-sizing:border-box;
+}
+body.mode-edit .editor { display:block; }
+body.mode-edit .stage { display:none; }
+.editor h1 { font-size:22px; margin:0 0 4px 0; }
+.editor p.lead { color:#8A93A6; margin:0 0 22px 0; font-size:14px; }
+.editor h2 { font-size:14px; color:#FFB020; margin:26px 0 10px 0; letter-spacing:.04em; }
+.editor label { display:block; font-size:12px; color:#8A93A6; margin-bottom:4px; }
+.editor input, .editor textarea {
+  background:#141926; border:1px solid rgba(242,237,228,.18); color:#F2EDE4;
+  padding:9px 10px; border-radius:4px; font-family:inherit; font-size:14px; width:100%;
+  box-sizing:border-box;
+}
+.editor input:focus, .editor textarea:focus { outline:2px solid #FFB020; outline-offset:1px; }
+.row { display:flex; gap:10px; margin-bottom:10px; align-items:flex-end; }
+.row .c { flex:1 1 auto; }
+.row .c.w-time { flex:0 0 90px; }
+.row .c.w-dur { flex:0 0 90px; }
+.row .c.w-price { flex:0 0 160px; }
+.btn {
+  background:#FFB020; color:#0A0C12; border:none; padding:10px 16px; border-radius:4px;
+  font-family:inherit; font-weight:700; font-size:14px; cursor:pointer;
+}
+.btn.ghost { background:transparent; color:#F2EDE4; box-shadow:inset 0 0 0 1px rgba(242,237,228,.3); }
+.btn.tiny { padding:8px 10px; font-size:13px; }
+.actions { margin-top:22px; display:flex; gap:10px; flex-wrap:wrap; }
+.out { margin-top:18px; }
+.out textarea { height:220px; font-family:Consolas,Menlo,monospace; font-size:12px; }
+template { display:none; }
+@media (max-width:700px){ .row { flex-wrap:wrap; } .row .c.w-time,.row .c.w-dur,.row .c.w-price{flex:1 1 40%;} }
+</style>
+</head>
+<body>
+
+<!-- =========================================================
+     PROGRAMDATA - rediger her, eller brug ?edit=1
+     ========================================================= -->
+<script type="application/json" id="cinema-data">
+{
+  "heading": "Biografen i dag",
+  "subheading": "Deck 8 \u2013 Cinema",
+  "timeLabel": "Skibstid",
+  "prices": [
+    { "value": "89", "label": "Voksen / Adult (DKK)" },
+    { "value": "69", "label": "Barn / Child (DKK)" }
+  ],
+  "messages": [
+    "Billetter k\u00f8bes i receptionen p\u00e5 deck 7",
+    "Tickets available at Reception, deck 7",
+    "D\u00f8rene \u00e5bner 10 minutter f\u00f8r forestillingen"
+  ],
+  "shows": [
+    { "time": "09:00", "title": "The Super Mario Galaxy Movie", "note": "Dansk tale \u2013 92 min", "dur": 92 },
+    { "time": "11:00", "title": "Toy Story 5", "note": "Engelsk tale \u2013 100 min", "dur": 100 },
+    { "time": "13:00", "title": "Michael", "note": "Engelsk tale \u2013 120 min", "dur": 120 },
+    { "time": "15:30", "title": "Minions & Monsters", "note": "Dansk tale \u2013 95 min", "dur": 95 }
+  ]
+}
+</script>
+
+<div class="stage">
+  <aside class="rail">
+    <div class="rail-head">
+      <h1 class="rail-title" id="uiHeading"></h1>
+      <p class="rail-sub" id="uiSub"></p>
+    </div>
+    <div class="shows" id="uiShows"></div>
+    <div class="rail-foot">
+      <div class="clock" id="uiClock">--:--</div>
+      <div class="clock-sub" id="uiClockSub"></div>
+    </div>
+  </aside>
+
+  <div class="footbar">
+    <div class="prices" id="uiPrices"></div>
+    <div class="message" id="uiMessage"></div>
+  </div>
+</div>
+
+<!-- =========================== EDITOR =========================== -->
+<div class="editor">
+  <h1>Biografprogram &#8211; redigering</h1>
+  <p class="lead">Ret teksterne, tryk <b>Gem som fil</b> og l&#230;g filen op der hvor sk&#230;rmen henter den. Ingenting sendes videre herfra.</p>
+
+  <h2>Overskrift</h2>
+  <div class="row">
+    <div class="c"><label>Titel</label><input id="edHeading"></div>
+    <div class="c"><label>Underrubrik</label><input id="edSub"></div>
+    <div class="c w-price"><label>Tekst under uret</label><input id="edTimeLabel"></div>
+  </div>
+
+  <h2>Forestillinger</h2>
+  <div id="edShows"></div>
+  <button class="btn ghost tiny" id="edAddShow">Tilf&#248;j forestilling</button>
+
+  <h2>Priser</h2>
+  <div id="edPrices"></div>
+  <button class="btn ghost tiny" id="edAddPrice">Tilf&#248;j pris</button>
+
+  <h2>Beskeder i bunden (skifter hvert 12. sekund)</h2>
+  <div class="c"><textarea id="edMessages" rows="4"></textarea></div>
+
+  <div class="actions">
+    <button class="btn" id="edSave">Gem som fil</button>
+    <button class="btn ghost" id="edCopy">Kopi&#233;r JSON</button>
+    <button class="btn ghost" id="edPreview">Se sk&#230;rmen</button>
+  </div>
+  <div class="out"><label>JSON</label><textarea id="edOut" readonly></textarea></div>
+</div>
+
+<template id="tplShow">
+  <div class="row js-show">
+    <div class="c w-time"><label>Kl.</label><input class="js-time" placeholder="09:00"></div>
+    <div class="c"><label>Film</label><input class="js-title"></div>
+    <div class="c"><label>Note</label><input class="js-note" placeholder="Dansk tale"></div>
+    <div class="c w-dur"><label>Min.</label><input class="js-dur" placeholder="95"></div>
+    <div class="c w-dur"><button class="btn ghost tiny js-del">Slet</button></div>
+  </div>
+</template>
+
+<template id="tplPrice">
+  <div class="row js-price">
+    <div class="c w-price"><label>Pris</label><input class="js-value" placeholder="89"></div>
+    <div class="c"><label>Tekst</label><input class="js-label" placeholder="Voksen / Adult (DKK)"></div>
+    <div class="c w-dur"><button class="btn ghost tiny js-del">Slet</button></div>
+  </div>
+</template>
+
+<script>
+/* ES5 only. Ren ASCII i denne fil. Al tekst med danske tegn kommer fra JSON. */
+(function () {
+  'use strict';
+
+  /* Saet denne til en URL hvis programmet skal hentes udefra.
+     F.eks. "https://kronborg1980.github.io/signage/cinema.json"
+     eller en Firebase RTDB adresse: ".../cinema.json"
+     Er den tom, bruges data-blokken oeverst i filen. */
+  var REMOTE_URL = '';
+  var REMOTE_REFRESH_MS = 300000;
+  var TICK_MS = 10000;
+  var MESSAGE_MS = 12000;
+
+  var data = null;
+  var msgIndex = 0;
+
+  function $(id) { return document.getElementById(id); }
+  function q(el, sel) { return el.querySelector(sel); }
+
+  function pad(n) { return n < 10 ? '0' + n : '' + n; }
+
+  function readLocal() {
+    var el = $('cinema-data');
+    try { return JSON.parse(el.textContent || el.innerText); }
+    catch (e) { return { heading: 'Cinema', subheading: '', prices: [], messages: [], shows: [] }; }
+  }
+
+  function cacheGet() {
+    try {
+      var raw = window.localStorage.getItem('norrona-cinema');
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) { return null; }
+  }
+  function cacheSet(obj) {
+    try { window.localStorage.setItem('norrona-cinema', JSON.stringify(obj)); } catch (e) {}
+  }
+
+  function loadRemote(cb) {
+    if (!REMOTE_URL) { cb(null); return; }
+    var url = REMOTE_URL + (REMOTE_URL.indexOf('?') > -1 ? '&' : '?') + 't=' + (new Date()).getTime();
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.timeout = 15000;
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState !== 4) { return; }
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          var obj = JSON.parse(xhr.responseText);
+          if (obj && obj.shows) { cacheSet(obj); cb(obj); return; }
+        } catch (e) {}
+      }
+      cb(null);
+    };
+    xhr.ontimeout = function () { cb(null); };
+    try { xhr.send(); } catch (e) { cb(null); }
+  }
+
+  function minutesOf(hhmm) {
+    if (!hhmm) { return -1; }
+    var p = ('' + hhmm).split(':');
+    var h = parseInt(p[0], 10);
+    var m = parseInt(p[1], 10);
+    if (isNaN(h)) { return -1; }
+    if (isNaN(m)) { m = 0; }
+    return h * 60 + m;
+  }
+
+  function nowMinutes() {
+    var d = new Date();
+    return d.getHours() * 60 + d.getMinutes();
+  }
+
+  function el(tag, cls) {
+    var n = document.createElement(tag);
+    if (cls) { n.className = cls; }
+    return n;
+  }
+
+  function renderShows() {
+    var host = $('uiShows');
+    while (host.firstChild) { host.removeChild(host.firstChild); }
+
+    var shows = data.shows || [];
+    var now = nowMinutes();
+    var nextIdx = -1;
+    var i, s, start, dur, end;
+
+    for (i = 0; i < shows.length; i++) {
+      start = minutesOf(shows[i].time);
+      dur = parseInt(shows[i].dur, 10);
+      if (isNaN(dur) || dur <= 0) { dur = 100; }
+      if (start > now && nextIdx === -1) { nextIdx = i; }
+    }
+
+    for (i = 0; i < shows.length; i++) {
+      s = shows[i];
+      start = minutesOf(s.time);
+      dur = parseInt(s.dur, 10);
+      if (isNaN(dur) || dur <= 0) { dur = 100; }
+      end = start + dur;
+
+      var live = start <= now && now < end;
+      var past = now >= end;
+
+      var row = el('div', 'show' + (live ? ' is-live' : '') + (past ? ' is-past' : ''));
+
+      var t = el('div', 'time');
+      t.appendChild(document.createTextNode(s.time || ''));
+
+      if (live) {
+        var b = el('span', 'badge');
+        b.appendChild(document.createTextNode(label('now')));
+        t.appendChild(b);
+      } else if (i === nextIdx) {
+        var b2 = el('span', 'badge soft');
+        b2.appendChild(document.createTextNode(countdown(start - now)));
+        t.appendChild(b2);
+      } else if (past) {
+        var b3 = el('span', 'badge soft');
+        b3.appendChild(document.createTextNode(label('done')));
+        t.appendChild(b3);
+      }
+      row.appendChild(t);
+
+      var ti = el('div', 'title');
+      ti.appendChild(document.createTextNode(s.title || ''));
+      row.appendChild(ti);
+
+      if (s.note) {
+        var n = el('div', 'note');
+        n.appendChild(document.createTextNode(s.note));
+        row.appendChild(n);
+      }
+
+      if (live) {
+        var wrap = el('div', 'bar-progress');
+        var fill = el('i');
+        var pct = Math.round(((now - start) / dur) * 100);
+        if (pct < 1) { pct = 1; }
+        if (pct > 100) { pct = 100; }
+        fill.style.width = pct + '%';
+        wrap.appendChild(fill);
+        row.appendChild(wrap);
+      }
+
+      host.appendChild(row);
+    }
+  }
+
+  function label(key) {
+    var l = data.labels || {};
+    if (key === 'now') { return l.now || 'NU'; }
+    if (key === 'done') { return l.done || 'SLUT'; }
+    if (key === 'inMin') { return l.inMin || 'om %m min'; }
+    return '';
+  }
+
+  function countdown(mins) {
+    if (mins > 180) { return ''; }
+    return label('inMin').replace('%m', '' + mins);
+  }
+
+  function renderPrices() {
+    var host = $('uiPrices');
+    while (host.firstChild) { host.removeChild(host.firstChild); }
+    var list = data.prices || [];
+    for (var i = 0; i < list.length; i++) {
+      var p = el('div', 'price');
+      var b = el('b');
+      b.appendChild(document.createTextNode(list[i].value || ''));
+      var s = el('span');
+      s.appendChild(document.createTextNode(list[i].label || ''));
+      p.appendChild(b);
+      p.appendChild(s);
+      host.appendChild(p);
+    }
+  }
+
+  function renderHead() {
+    $('uiHeading').innerHTML = '';
+    $('uiHeading').appendChild(document.createTextNode(data.heading || ''));
+    $('uiSub').innerHTML = '';
+    $('uiSub').appendChild(document.createTextNode(data.subheading || ''));
+  }
+
+  function renderClock() {
+    var d = new Date();
+    var c = $('uiClock');
+    c.innerHTML = '';
+    c.appendChild(document.createTextNode(pad(d.getHours()) + ':' + pad(d.getMinutes())));
+    var sub = $('uiClockSub');
+    sub.innerHTML = '';
+    sub.appendChild(document.createTextNode(data.timeLabel || ''));
+  }
+
+  function rotateMessage() {
+    var list = data.messages || [];
+    var node = $('uiMessage');
+    if (!list.length) { node.innerHTML = ''; return; }
+    node.className = 'message fade';
+    window.setTimeout(function () {
+      node.innerHTML = '';
+      node.appendChild(document.createTextNode(list[msgIndex % list.length]));
+      msgIndex++;
+      node.className = 'message';
+    }, 500);
+  }
+
+  function renderAll() {
+    renderHead();
+    renderShows();
+    renderPrices();
+    renderClock();
+  }
+
+  function param(name) {
+    var m = new RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
+    return m ? decodeURIComponent(m[1]) : '';
+  }
+
+  /* ---------------- editor ---------------- */
+
+  function addShowRow(s) {
+    var tpl = $('tplShow');
+    var node = tpl.content ? tpl.content.cloneNode(true) : null;
+    if (!node) { return; }
+    var host = $('edShows');
+    host.appendChild(node);
+    var rows = host.getElementsByClassName('js-show');
+    var row = rows[rows.length - 1];
+    if (s) {
+      q(row, '.js-time').value = s.time || '';
+      q(row, '.js-title').value = s.title || '';
+      q(row, '.js-note').value = s.note || '';
+      q(row, '.js-dur').value = s.dur || '';
+    }
+    q(row, '.js-del').onclick = function () { row.parentNode.removeChild(row); buildJson(); };
+  }
+
+  function addPriceRow(p) {
+    var tpl = $('tplPrice');
+    var node = tpl.content ? tpl.content.cloneNode(true) : null;
+    if (!node) { return; }
+    var host = $('edPrices');
+    host.appendChild(node);
+    var rows = host.getElementsByClassName('js-price');
+    var row = rows[rows.length - 1];
+    if (p) {
+      q(row, '.js-value').value = p.value || '';
+      q(row, '.js-label').value = p.label || '';
+    }
+    q(row, '.js-del').onclick = function () { row.parentNode.removeChild(row); buildJson(); };
+  }
+
+  function collect() {
+    var out = {
+      heading: $('edHeading').value,
+      subheading: $('edSub').value,
+      timeLabel: $('edTimeLabel').value,
+      labels: data.labels || undefined,
+      prices: [],
+      messages: [],
+      shows: []
+    };
+    var rows = $('edShows').getElementsByClassName('js-show');
+    var i;
+    for (i = 0; i < rows.length; i++) {
+      var t = q(rows[i], '.js-time').value;
+      var ti = q(rows[i], '.js-title').value;
+      if (!t && !ti) { continue; }
+      out.shows.push({
+        time: t,
+        title: ti,
+        note: q(rows[i], '.js-note').value,
+        dur: parseInt(q(rows[i], '.js-dur').value, 10) || 100
+      });
+    }
+    var prows = $('edPrices').getElementsByClassName('js-price');
+    for (i = 0; i < prows.length; i++) {
+      var v = q(prows[i], '.js-value').value;
+      if (!v) { continue; }
+      out.prices.push({ value: v, label: q(prows[i], '.js-label').value });
+    }
+    var lines = $('edMessages').value.split('\n');
+    for (i = 0; i < lines.length; i++) {
+      var line = lines[i].replace(/^\s+|\s+$/g, '');
+      if (line) { out.messages.push(line); }
+    }
+    return out;
+  }
+
+  function buildJson() {
+    $('edOut').value = JSON.stringify(collect(), null, 2);
+  }
+
+  function startEditor() {
+    document.body.className = 'mode-edit';
+    $('edHeading').value = data.heading || '';
+    $('edSub').value = data.subheading || '';
+    $('edTimeLabel').value = data.timeLabel || '';
+    $('edMessages').value = (data.messages || []).join('\n');
+    var i;
+    for (i = 0; i < (data.shows || []).length; i++) { addShowRow(data.shows[i]); }
+    for (i = 0; i < (data.prices || []).length; i++) { addPriceRow(data.prices[i]); }
+    buildJson();
+
+    document.onkeyup = null;
+    $('edAddShow').onclick = function () { addShowRow(null); buildJson(); };
+    $('edAddPrice').onclick = function () { addPriceRow(null); buildJson(); };
+    $('edSave').onclick = function () {
+      buildJson();
+      var blob = new Blob([$('edOut').value], { type: 'application/json' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'cinema.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    };
+    $('edCopy').onclick = function () {
+      buildJson();
+      $('edOut').select();
+      try { document.execCommand('copy'); } catch (e) {}
+    };
+    $('edPreview').onclick = function () {
+      data = collect();
+      document.body.className = '';
+      renderAll();
+      rotateMessage();
+    };
+    var editor = document.getElementsByClassName('editor')[0];
+    editor.onkeyup = buildJson;
+    editor.onchange = buildJson;
+  }
+
+  /* ---------------- start ---------------- */
+
+  function boot() {
+    var mode = param('mode');
+    if (mode === 'rail' || mode === 'bar') { document.body.className = 'mode-' + mode; }
+
+    data = cacheGet() || readLocal();
+    renderAll();
+    rotateMessage();
+
+    if (param('edit')) { startEditor(); return; }
+
+    loadRemote(function (obj) {
+      if (obj) { data = obj; renderAll(); }
+    });
+
+    window.setInterval(function () { renderShows(); renderClock(); }, TICK_MS);
+    window.setInterval(rotateMessage, MESSAGE_MS);
+    window.setInterval(function () {
+      loadRemote(function (obj) { if (obj) { data = obj; renderAll(); } });
+    }, REMOTE_REFRESH_MS);
+
+    /* Ny dag: genindlaes efter midnat saa cache og layout er friske. */
+    window.setInterval(function () {
+      var d = new Date();
+      if (d.getHours() === 3 && d.getMinutes() === 0) { window.location.reload(); }
+    }, 60000);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot, false);
+  } else {
+    boot();
+  }
+})();
+</script>
+</body>
+</html>
