@@ -29,9 +29,8 @@ body {
   width:17vw; min-width:200px;
   background:#000000;
   display:flex; flex-direction:column;
-  /* padding in % of the rail itself, so it scales with the rail width
-     instead of with the screen width */
-  padding:0 6% 1.4vh 6%;
+  /* fallback - the real value is set from the rail width in applyLayout */
+  padding:0 1.1vw 1.4vh 1.1vw;
   overflow:hidden;
 }
 .rail::before {
@@ -940,7 +939,15 @@ template { display:none; }
 
     var rail = document.querySelector('.rail');
     var bar = document.querySelector('.footbar');
-    if (rail) { rail.style.width = rWidth + 'vw'; }
+    if (rail) {
+      rail.style.width = rWidth + 'vw';
+      /* indent is 7% of the rail's own width, kept in vw so it scales
+         with the rail and not with the screen */
+      var padVw = Math.round(rWidth * 7) / 100;
+      if (padVw < 0.4) { padVw = 0.4; }
+      rail.style.paddingLeft = padVw + 'vw';
+      rail.style.paddingRight = padVw + 'vw';
+    }
     if (bar) {
       bar.style.right = rWidth + 'vw';
       bar.style.height = bHeight + 'vh';
