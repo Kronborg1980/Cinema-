@@ -181,7 +181,6 @@ body.mode-edit .stage { display:none; }
 }
 .editor label { display:block; font-size:11px; color:#94a3b4; margin-bottom:5px; letter-spacing:.04em; }
 
-/* Added select styling so dropdowns look like inputs */
 .editor input, .editor textarea, .editor select {
   background:#06111f; border:1px solid rgba(0,242,254,0.2); color:#f8fafc;
   padding:9px 10px; border-radius:6px; font-family:inherit; font-size:14px; width:100%;
@@ -209,7 +208,6 @@ template { display:none; }
 </head>
 <body>
 
-<!-- Standard data (Inkluderer layout-opsætning og sjove film) -->
 <script type="application/json" id="cinema-data">
 {
   "layout": {
@@ -307,17 +305,11 @@ template { display:none; }
   <div class="out"><label>JSON</label><textarea id="edOut" readonly></textarea></div>
 </div>
 
-<!-- 
-  ==============================================================
-  SKABELONER TIL EDITOREN (Her er dropdowns tilføjet) 
-  ============================================================== 
--->
 <template id="tplShow">
   <div class="row js-show">
     <div class="c w-time"><label>Time</label><input class="js-time" placeholder="09:00"></div>
     <div class="c"><label>Film</label><input class="js-title"></div>
     
-    <!-- Audio Dropdown -->
     <div class="c"><label>Audio / Note</label>
       <select class="js-note">
         <option value="">- Ingen note -</option>
@@ -336,8 +328,6 @@ template { display:none; }
 
 <template id="tplPrice">
   <div class="row js-price">
-    
-    <!-- Billet type Dropdown -->
     <div class="c w-price"><label>Label</label>
       <select class="js-head">
         <option value="Adult">Adult</option>
@@ -350,7 +340,6 @@ template { display:none; }
     
     <div class="c w-time"><label>Price</label><input class="js-value" type="number" placeholder="89"></div>
     
-    <!-- Valuta Dropdown -->
     <div class="c w-time"><label>Currency</label>
       <select class="js-unit">
         <option value="DKK">DKK</option>
@@ -368,7 +357,7 @@ template { display:none; }
 
   var REMOTE_URL = 'https://norrona-cinema-api.kronborgnielsen.workers.dev'; 
   
-  var REMOTE_REFRESH_MS = 60000; // Skærmene henter nyt data hvert minut
+  var REMOTE_REFRESH_MS = 60000; 
   var TICK_MS = 10000;
   var MESSAGE_MS = 12000;
 
@@ -391,7 +380,7 @@ template { display:none; }
   function readLocal() {
     var node = $('cinema-data');
     try { return JSON.parse(node.textContent || node.innerText); }
-    catch (e) { return { heading: 'Cinema', prices: [], messages: [], shows: [] }; }
+    catch (e) { return { shows: [] }; }
   }
   function cacheGet() {
     try { var raw = window.localStorage.getItem('norrona-cinema'); return raw ? JSON.parse(raw) : null; }
@@ -581,24 +570,29 @@ template { display:none; }
 
     var msg = el('div', 'message');
     msg.id = 'uiMessage';
-    addModule(host, data.ticketsHeading, msg, 'cta');
+    addModule(host, data.ticketsHeading || 'Tickets', msg, 'cta');
   }
 
   function renderHead() {
-    txt($('uiHeading'), data.heading || '');
-    txt($('uiTimeHeading'), data.timeHeading || '');
+    // Hvis data mangler (f.eks. ved fejl på databasegemning), falder vi tilbage på standardteksterne
+    txt($('uiHeading'), data.heading || 'Cinema Programme');
+    txt($('uiTimeHeading'), data.timeHeading || 'Ship Time \u00b7 Faroe');
   }
 
   function renderClock() {
     var d = new Date();
     txt($('uiClock'), pad(d.getHours()) + ':' + pad(d.getMinutes()));
-    var days = data.days, months = data.months;
-    if (days && months) {
-      txt($('uiDate'), days[d.getDay()] + ', ' + d.getDate() + ' ' + months[d.getMonth()] +
-        (data.venue ? '  ' + String.fromCharCode(183) + '  ' + data.venue : ''));
-    } else {
-      txt($('uiDate'), data.venue || '');
-    }
+    
+    // Sikkerhedsnet: Brug faste ugedage og måneder, hvis de mangler fra databasen
+    var days = data.days || ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+    var months = data.months || ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    
+    // Beregn GMT offset præcis som på dit referencebillede
+    var offset = -(d.getTimezoneOffset() / 60);
+    var gmtStr = 'GMT' + (offset >= 0 ? '+' : '') + offset;
+    
+    var dateString = days[d.getDay()].toUpperCase() + ', ' + d.getDate() + ' ' + months[d.getMonth()].toUpperCase() + ' \u00b7 ' + gmtStr;
+    txt($('uiDate'), dateString);
   }
 
   function showMessage(node) {
@@ -624,7 +618,6 @@ template { display:none; }
     var rWidth = (data.layout && data.layout.railWidth) ? parseFloat(data.layout.railWidth) : 17;
     var bHeight = (data.layout && data.layout.barHeight) ? parseFloat(data.layout.barHeight) : 11;
     
-    // Sikkerhedsnet mod forkerte indtastninger
     if (isNaN(rWidth) || rWidth < 5) rWidth = 17;
     if (isNaN(bHeight) || bHeight < 5) bHeight = 11;
     
@@ -670,42 +663,40 @@ template { display:none; }
       if (!s) { return; }
       q(row, '.js-time').value = s.time || '';
       q(row, '.js-title').value = s.title || '';
-      
-      // Sætter dropdown til den gemte værdi, eller tom hvis den ikke genkendes
       var noteSelect = q(row, '.js-note');
       noteSelect.value = s.note || '';
-      
       q(row, '.js-dur').value = s.dur || '';
     });
   }
   function addPriceRow(p) {
     addRow('tplPrice', 'edPrices', 'js-price', function (row) {
       if (!p) { return; }
-      
-      // Sætter dropdown til den gemte værdi
       var headSelect = q(row, '.js-head');
       headSelect.value = p.head || '';
-      
       q(row, '.js-value').value = p.value || '';
-      
       var unitSelect = q(row, '.js-unit');
       unitSelect.value = p.unit || '';
     });
   }
 
   function collect() {
+    var defaultLabels = { "now": "Now showing", "done": "Ended", "inMin": "In %m min", "next": "Next", "ends": "Ends %t" };
+    var defaultDays = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+    var defaultMonths = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
     var out = {
       layout: {
         railWidth: $('edRailWidth').value,
         barHeight: $('edBarHeight').value
       },
-      heading: $('edHeading').value,
-      venue: data.venue,
-      ticketsHeading: $('edVenue').value,
-      timeHeading: $('edTimeHeading').value,
-      labels: data.labels,
-      days: data.days,
-      months: data.months,
+      // Sikkerhedsnet ved gem til databasen
+      heading: $('edHeading').value || 'Cinema Programme',
+      venue: data.venue || 'Deck 8',
+      ticketsHeading: $('edVenue').value || 'Tickets',
+      timeHeading: $('edTimeHeading').value || 'Ship Time \u00b7 Faroe',
+      labels: data.labels || defaultLabels,
+      days: data.days || defaultDays,
+      months: data.months || defaultMonths,
       prices: [],
       messages: [],
       shows: []
@@ -734,7 +725,7 @@ template { display:none; }
     }
     var doorsText = $('edDoorsText').value.replace(/^\s+|\s+$/g, '');
     if (doorsText) {
-      out.info = [{ head: $('edDoorsHead').value, text: doorsText }];
+      out.info = [{ head: $('edDoorsHead').value || 'Doors', text: doorsText }];
     }
 
     var blocks = $('edMessages').value.split(/\n\s*\n/);
@@ -748,20 +739,19 @@ template { display:none; }
   function buildJson() { $('edOut').value = JSON.stringify(collect(), null, 2); }
 
   function startEditor() {
-    // Slet gammelt indhold så vi ikke duplikerer
     $('edShows').innerHTML = '';
     $('edPrices').innerHTML = '';
 
     document.body.className = 'mode-edit';
     $('edRailWidth').value = (data.layout && data.layout.railWidth) ? data.layout.railWidth : '17';
     $('edBarHeight').value = (data.layout && data.layout.barHeight) ? data.layout.barHeight : '11';
-    $('edHeading').value = data.heading || '';
-    $('edVenue').value = data.ticketsHeading || '';
-    $('edTimeHeading').value = data.timeHeading || '';
+    $('edHeading').value = data.heading || 'Cinema Programme';
+    $('edVenue').value = data.ticketsHeading || 'Tickets';
+    $('edTimeHeading').value = data.timeHeading || 'Ship Time \u00b7 Faroe';
     $('edMessages').value = (data.messages || []).join('\n\n');
     var doors = (data.info && data.info[0]) ? data.info[0] : null;
     $('edDoorsHead').value = doors ? (doors.head || '') : 'Doors';
-    $('edDoorsText').value = doors ? (doors.text || '') : '';
+    $('edDoorsText').value = doors ? (doors.text || '') : 'Open 10 minutes\nbefore each screening';
     var i;
     for (i = 0; i < (data.shows || []).length; i++) { addShowRow(data.shows[i]); }
     for (i = 0; i < (data.prices || []).length; i++) { addPriceRow(data.prices[i]); }
@@ -772,15 +762,13 @@ template { display:none; }
     $('edAddShow').onclick = function () { addShowRow(null); buildJson(); };
     $('edAddPrice').onclick = function () { addPriceRow(null); buildJson(); };
     
-    // Nulstil til test-data funktion
     $('edReset').onclick = function () {
       if(confirm("Vil du slette det nuværende (tomme) indhold og indlæse test-programmet med filmene?")) {
-        data = readLocal(); // Læser filmene fra bunden af HTML filen
+        data = readLocal(); 
         startEditor();
       }
     };
 
-    // --- GEM TIL CLOUDFLARE LOGIK ---
     $('edSave').onclick = function () {
       buildJson();
       var btn = $('edSave');
@@ -827,7 +815,6 @@ template { display:none; }
     bindEditorEvents();
 
     loadRemote(function (o) { 
-      // Hvis skyen er fuldstændig tom (f.eks. første gang den køres), brug de indbyggede data!
       if (o && o.shows && o.shows.length > 0) { 
         data = o; 
       } else {
