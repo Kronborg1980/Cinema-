@@ -180,11 +180,14 @@ body.mode-edit .stage { display:none; }
   color:#00f2fe; margin:26px 0 10px 0;
 }
 .editor label { display:block; font-size:11px; color:#94a3b4; margin-bottom:5px; letter-spacing:.04em; }
-.editor input, .editor textarea {
+
+/* Added select styling so dropdowns look like inputs */
+.editor input, .editor textarea, .editor select {
   background:#06111f; border:1px solid rgba(0,242,254,0.2); color:#f8fafc;
   padding:9px 10px; border-radius:6px; font-family:inherit; font-size:14px; width:100%;
 }
-.editor input:focus, .editor textarea:focus { outline:2px solid #00f2fe; outline-offset:1px; }
+.editor input:focus, .editor textarea:focus, .editor select:focus { outline:2px solid #00f2fe; outline-offset:1px; }
+
 .row { display:flex; margin-bottom:10px; align-items:flex-end; }
 .row .c { flex:1 1 auto; padding-right:10px; }
 .row .c.w-time { flex:0 0 90px; }
@@ -268,8 +271,8 @@ template { display:none; }
 
   <h2>Layout / Udseende</h2>
   <div class="row">
-    <div class="c w-price"><label>Højre bjælkes bredde (Standard: 17)</label><input id="edRailWidth" placeholder="17"></div>
-    <div class="c w-price"><label>Bundlinjens højde (Standard: 11)</label><input id="edBarHeight" placeholder="11"></div>
+    <div class="c w-price"><label>Højre bjælkes bredde (Standard: 17)</label><input id="edRailWidth" type="number" placeholder="17"></div>
+    <div class="c w-price"><label>Bundlinjens højde (Standard: 11)</label><input id="edBarHeight" type="number" placeholder="11"></div>
   </div>
 
   <h2>Headings</h2>
@@ -304,21 +307,57 @@ template { display:none; }
   <div class="out"><label>JSON</label><textarea id="edOut" readonly></textarea></div>
 </div>
 
+<!-- 
+  ==============================================================
+  SKABELONER TIL EDITOREN (Her er dropdowns tilføjet) 
+  ============================================================== 
+-->
 <template id="tplShow">
   <div class="row js-show">
     <div class="c w-time"><label>Time</label><input class="js-time" placeholder="09:00"></div>
     <div class="c"><label>Film</label><input class="js-title"></div>
-    <div class="c"><label>Note</label><input class="js-note" placeholder="English audio"></div>
-    <div class="c w-dur"><label>Minutes</label><input class="js-dur" placeholder="95"></div>
+    
+    <!-- Audio Dropdown -->
+    <div class="c"><label>Audio / Note</label>
+      <select class="js-note">
+        <option value="">- Ingen note -</option>
+        <option value="Danish audio">Danish audio</option>
+        <option value="English audio">English audio</option>
+        <option value="Faroese audio">Faroese audio</option>
+        <option value="Danish subtitles">Danish subtitles</option>
+        <option value="English subtitles">English subtitles</option>
+      </select>
+    </div>
+    
+    <div class="c w-dur"><label>Minutes</label><input class="js-dur" type="number" placeholder="95"></div>
     <div class="c w-dur"><button class="btn ghost tiny js-del">Remove</button></div>
   </div>
 </template>
 
 <template id="tplPrice">
   <div class="row js-price">
-    <div class="c w-price"><label>Label</label><input class="js-head" placeholder="Adult"></div>
-    <div class="c w-time"><label>Price</label><input class="js-value" placeholder="89"></div>
-    <div class="c w-time"><label>Currency</label><input class="js-unit" placeholder="DKK"></div>
+    
+    <!-- Billet type Dropdown -->
+    <div class="c w-price"><label>Label</label>
+      <select class="js-head">
+        <option value="Adult">Adult</option>
+        <option value="Child">Child</option>
+        <option value="Senior">Senior</option>
+        <option value="Pensioner">Pensioner</option>
+        <option value="Student">Student</option>
+      </select>
+    </div>
+    
+    <div class="c w-time"><label>Price</label><input class="js-value" type="number" placeholder="89"></div>
+    
+    <!-- Valuta Dropdown -->
+    <div class="c w-time"><label>Currency</label>
+      <select class="js-unit">
+        <option value="DKK">DKK</option>
+        <option value="EUR">EUR</option>
+      </select>
+    </div>
+    
     <div class="c w-dur"><button class="btn ghost tiny js-del">Remove</button></div>
   </div>
 </template>
@@ -631,16 +670,26 @@ template { display:none; }
       if (!s) { return; }
       q(row, '.js-time').value = s.time || '';
       q(row, '.js-title').value = s.title || '';
-      q(row, '.js-note').value = s.note || '';
+      
+      // Sætter dropdown til den gemte værdi, eller tom hvis den ikke genkendes
+      var noteSelect = q(row, '.js-note');
+      noteSelect.value = s.note || '';
+      
       q(row, '.js-dur').value = s.dur || '';
     });
   }
   function addPriceRow(p) {
     addRow('tplPrice', 'edPrices', 'js-price', function (row) {
       if (!p) { return; }
-      q(row, '.js-head').value = p.head || '';
+      
+      // Sætter dropdown til den gemte værdi
+      var headSelect = q(row, '.js-head');
+      headSelect.value = p.head || '';
+      
       q(row, '.js-value').value = p.value || '';
-      q(row, '.js-unit').value = p.unit || '';
+      
+      var unitSelect = q(row, '.js-unit');
+      unitSelect.value = p.unit || '';
     });
   }
 
@@ -699,7 +748,7 @@ template { display:none; }
   function buildJson() { $('edOut').value = JSON.stringify(collect(), null, 2); }
 
   function startEditor() {
-    // Slet gammelt indhold så vi ikke duplikerer, når der trykkes "Indlæs test-data"
+    // Slet gammelt indhold så vi ikke duplikerer
     $('edShows').innerHTML = '';
     $('edPrices').innerHTML = '';
 
@@ -726,7 +775,7 @@ template { display:none; }
     // Nulstil til test-data funktion
     $('edReset').onclick = function () {
       if(confirm("Vil du slette det nuværende (tomme) indhold og indlæse test-programmet med filmene?")) {
-        data = readLocal(); // Læser de dumme film fra bunden af HTML filen
+        data = readLocal(); // Læser filmene fra bunden af HTML filen
         startEditor();
       }
     };
@@ -777,13 +826,12 @@ template { display:none; }
 
     bindEditorEvents();
 
-    // Prøv at hente fra skyen først, brug lokal backup (med de dumme film) hvis skyen er tom eller fejler
     loadRemote(function (o) { 
-      // Hvis databasen i skyen er fuldstændig tom (ingen shows), indlæser vi standard-data alligevel
+      // Hvis skyen er fuldstændig tom (f.eks. første gang den køres), brug de indbyggede data!
       if (o && o.shows && o.shows.length > 0) { 
         data = o; 
       } else {
-        data = cacheGet() || readLocal();
+        data = readLocal();
       }
       
       renderAll();
@@ -794,7 +842,6 @@ template { display:none; }
       window.setInterval(function () { renderShows(); renderClock(); }, TICK_MS);
       window.setInterval(rotateMessage, MESSAGE_MS);
       
-      // Skærmen opdaterer fra skyen automatisk
       window.setInterval(function () {
         loadRemote(function (o) { if (o) { data = o; renderAll(); } });
       }, REMOTE_REFRESH_MS);
