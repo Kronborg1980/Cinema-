@@ -6,23 +6,19 @@
 <title>Norrona Cinema - Nordic Neon</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<!-- Indlæser flere skrifttyper så der er noget at vælge imellem -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@400;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 /* ---------------------------------------------------------------
    MS Norrona - Cinema signage, Nordic Neon
-   Same palette and type as Kronborgs Widget: black panels, cyan to
-   blue accents, Inter, letterspaced module headers.
-   Modes:  (none)      full screen, centre left transparent for video
-           ?mode=rail  right panel only
-           ?mode=bar   bottom bar only
-           ?edit=1     editor
    --------------------------------------------------------------- */
 
 * { margin:0; padding:0; box-sizing:border-box; }
 html, body { height:100%; width:100%; background:transparent; }
 body {
   color:#f8fafc;
-  font-family:'Inter', Arial, sans-serif;
+  /* Font styres nu via CSS variabler, med Inter som fallback */
+  font-family: var(--font-family, 'Inter', Arial, sans-serif);
   overflow:hidden;
   -webkit-font-smoothing:antialiased;
 }
@@ -67,8 +63,9 @@ body {
   background:linear-gradient(90deg, rgba(0,242,254,0), rgba(0,242,254,0.18), rgba(0,242,254,0));
 }
 .show .head { display:flex; align-items:center; }
-.show .time { font-size:2.4vh; font-weight:600; color:#ffffff; line-height:1; letter-spacing:.02em; }
-.show .title { font-size:1.7vh; font-weight:600; color:#ffffff; line-height:1.25; margin-top:.8vh; }
+/* Størrelser styres nu via variabler */
+.show .time { font-size: var(--sz-time, 2.4vh); font-weight:600; color:#ffffff; line-height:1; letter-spacing:.02em; }
+.show .title { font-size: var(--sz-title, 1.7vh); font-weight:600; color:#ffffff; line-height:1.25; margin-top:.8vh; }
 .show .note { font-size:1.25vh; color:#94a3b4; margin-top:.45vh; letter-spacing:.02em; }
 
 .show.is-live .time { color:#ffffff; }
@@ -106,7 +103,7 @@ body {
 }
 
 .rail-foot { flex:0 0 auto; text-align:center; }
-.clock { font-size:4vh; font-weight:300; color:#ffffff; letter-spacing:.05em; line-height:1; }
+.clock { font-size: var(--sz-clock, 4vh); font-weight:300; color:#ffffff; letter-spacing:.05em; line-height:1; }
 .clock-underline {
   width:46px; height:2px; margin:.9vh auto 0 auto;
   background:-webkit-linear-gradient(left, #00f2fe, #4facfe);
@@ -148,23 +145,11 @@ body {
 .price em { font-style:normal; font-size:1.3vh; color:#00f2fe; margin-left:.35vw; }
 .finfo { font-size:1.55vh; font-weight:500; color:#cbd5e1; line-height:1.2; }
 .message {
-  font-size:1.8vh; font-weight:500; color:#ffffff; letter-spacing:.01em; line-height:1.2;
+  font-size: var(--sz-msg, 1.8vh); font-weight:500; color:#ffffff; letter-spacing:.01em; line-height:1.2;
   opacity:1; -webkit-transition:opacity .45s; transition:opacity .45s;
 }
 .message b { color:#00f2fe; font-weight:600; }
 .message.fade { opacity:0; }
-
-/* ---------- MODES ---------- */
-body.mode-rail .footbar { display:none; }
-body.mode-rail .rail { width:100vw; min-width:0; }
-body.mode-bar .rail { display:none; }
-body.mode-bar .footbar { right:0; height:100vh; min-height:0; }
-body.mode-bar .fhead { font-size:9vh; margin-bottom:7vh; }
-body.mode-bar .price { font-size:26vh; }
-body.mode-bar .price em { font-size:13vh; }
-body.mode-bar .message { font-size:17vh; }
-body.mode-bar .finfo { font-size:15vh; }
-body.mode-bar .fmodule { padding:0 3.5vw; }
 
 /* ---------- EDITOR ---------- */
 .editor {
@@ -177,9 +162,25 @@ body.mode-edit .stage { display:none; }
 .editor p.lead { color:#94a3b4; margin-bottom:22px; font-size:14px; }
 .editor h2 {
   font-size:10px; font-weight:700; letter-spacing:.24em; text-transform:uppercase;
-  color:#00f2fe; margin:26px 0 10px 0;
+  color:#00f2fe; margin:35px 0 10px 0; border-bottom: 1px solid rgba(0,242,254,0.2); padding-bottom: 6px;
 }
 .editor label { display:block; font-size:11px; color:#94a3b4; margin-bottom:5px; letter-spacing:.04em; }
+
+/* Værktøjstip (Spørgsmålstegn) */
+.help-tip {
+  display: inline-block;
+  width: 15px; height: 15px;
+  background: rgba(0,242,254,0.2); color: #00f2fe;
+  border: 1px solid #00f2fe;
+  border-radius: 50%;
+  text-align: center; line-height: 13px;
+  font-size: 10px; font-weight: bold;
+  margin-left: 6px; cursor: help;
+  transition: all 0.2s;
+}
+.help-tip:hover {
+  background: #00f2fe; color: #0a0e17;
+}
 
 .editor input, .editor textarea, .editor select {
   background:#06111f; border:1px solid rgba(0,242,254,0.2); color:#f8fafc;
@@ -210,6 +211,13 @@ template { display:none; }
 
 <script type="application/json" id="cinema-data">
 {
+  "style": {
+    "fontFamily": "'Inter', Arial, sans-serif",
+    "szTitle": "1.7",
+    "szTime": "2.4",
+    "szMsg": "1.8",
+    "szClock": "4"
+  },
   "layout": {
     "railWidth": "17",
     "barHeight": "11"
@@ -267,35 +275,89 @@ template { display:none; }
   <h1>Cinema programme</h1>
   <p class="lead">Edit the schedule. When you click <b>Save to Cloud</b>, the digital signage will update automatically within a few minutes.</p>
 
+  <h2>Design & Skrifttyper</h2>
+  <div class="row">
+    <div class="c w-price">
+      <label>Skrifttype <span class="help-tip" title="Vælg den overordnede skrifttype for hele skærmen. Inter er standard for 'Nordic Neon' designet.">?</span></label>
+      <select id="edFontFamily">
+        <option value="'Inter', Arial, sans-serif">Inter (Standard)</option>
+        <option value="'Montserrat', sans-serif">Montserrat (Moderne)</option>
+        <option value="'Roboto', Arial, sans-serif">Roboto (Klassisk)</option>
+        <option value="'Times New Roman', serif">Times New Roman</option>
+        <option value="Arial, sans-serif">Arial</option>
+      </select>
+    </div>
+    <div class="c w-dur">
+      <label>Størrelse: Film <span class="help-tip" title="Størrelsen på selve film-titlerne (Standard: 1.7)">?</span></label>
+      <input id="edSzTitle" type="number" step="0.1" placeholder="1.7">
+    </div>
+    <div class="c w-dur">
+      <label>Størrelse: Tid <span class="help-tip" title="Størrelsen på klokkeslættet ud for hver film (Standard: 2.4)">?</span></label>
+      <input id="edSzTime" type="number" step="0.1" placeholder="2.4">
+    </div>
+    <div class="c w-dur">
+      <label>Størrelse: Ur <span class="help-tip" title="Størrelsen på det store digitale ur nede i hjørnet (Standard: 4.0)">?</span></label>
+      <input id="edSzClock" type="number" step="0.1" placeholder="4.0">
+    </div>
+    <div class="c w-dur">
+      <label>Størrelse: Besked <span class="help-tip" title="Størrelsen på den roterende besked i bunden af skærmen (Standard: 1.8)">?</span></label>
+      <input id="edSzMsg" type="number" step="0.1" placeholder="1.8">
+    </div>
+  </div>
+
   <h2>Layout / Udseende</h2>
   <div class="row">
-    <div class="c w-price"><label>Højre bjælkes bredde (Standard: 17)</label><input id="edRailWidth" type="number" placeholder="17"></div>
-    <div class="c w-price"><label>Bundlinjens højde (Standard: 11)</label><input id="edBarHeight" type="number" placeholder="11"></div>
+    <div class="c w-price">
+      <label>Højre bjælkes bredde <span class="help-tip" title="Justerer hvor bred den sorte bjælke med programmet skal være i procent af skærmen (Standard: 17)">?</span></label>
+      <input id="edRailWidth" type="number" placeholder="17">
+    </div>
+    <div class="c w-price">
+      <label>Bundlinjens højde <span class="help-tip" title="Justerer hvor høj bjælken i bunden skal være i procent (Standard: 11)">?</span></label>
+      <input id="edBarHeight" type="number" placeholder="11">
+    </div>
   </div>
 
-  <h2>Headings</h2>
+  <h2>Headings / Overskrifter</h2>
   <div class="row">
-    <div class="c"><label>Panel heading</label><input id="edHeading"></div>
-    <div class="c w-price"><label>Bottom bar heading</label><input id="edVenue"></div>
-    <div class="c w-price"><label>Clock heading</label><input id="edTimeHeading"></div>
+    <div class="c">
+      <label>Panel heading <span class="help-tip" title="Den lille tekst øverst over filmprogrammet (f.eks. 'Cinema Programme')">?</span></label>
+      <input id="edHeading">
+    </div>
+    <div class="c w-price">
+      <label>Bottom bar heading <span class="help-tip" title="Den lille overskrift over den roterende besked i bunden (f.eks. 'Tickets')">?</span></label>
+      <input id="edVenue">
+    </div>
+    <div class="c w-price">
+      <label>Clock heading <span class="help-tip" title="Den lille overskrift lige over uret i hjørnet (f.eks. 'Ship Time · Faroe')">?</span></label>
+      <input id="edTimeHeading">
+    </div>
   </div>
 
-  <h2>Screenings</h2>
+  <h2>Screenings / Biografprogram</h2>
   <div id="edShows"></div>
   <button class="btn ghost tiny" id="edAddShow">Add screening</button>
 
-  <h2>Ticket prices</h2>
+  <h2>Ticket prices / Billetpriser</h2>
   <div id="edPrices"></div>
   <button class="btn ghost tiny" id="edAddPrice">Add price</button>
 
-  <h2>Doors</h2>
+  <h2>Doors / Info boks</h2>
   <div class="row">
-    <div class="c w-price"><label>Label</label><input id="edDoorsHead" placeholder="Doors"></div>
-    <div class="c"><label>Text - a line break here becomes a line break on screen</label><textarea id="edDoorsText" rows="2"></textarea></div>
+    <div class="c w-price">
+      <label>Label <span class="help-tip" title="Overskriften over info-boksen (f.eks. 'Doors')">?</span></label>
+      <input id="edDoorsHead" placeholder="Doors">
+    </div>
+    <div class="c">
+      <label>Text <span class="help-tip" title="Teksten i boksen. Et linjeskift her bliver også til et linjeskift på skærmen.">?</span></label>
+      <textarea id="edDoorsText" rows="2"></textarea>
+    </div>
   </div>
 
-  <h2>Ticket message - leave an empty line between each language, rotates every 12 seconds</h2>
-  <div class="c"><textarea id="edMessages" rows="6"></textarea></div>
+  <h2>Ticket message / Roterende beskeder i bunden</h2>
+  <div class="c">
+    <label>Beskeder <span class="help-tip" title="Skriv dine beskeder her. Lad én linje være tom mellem hver besked, så skifter skærmen automatisk mellem dem hvert 12. sekund.">?</span></label>
+    <textarea id="edMessages" rows="6"></textarea>
+  </div>
 
   <div class="actions">
     <button class="btn" id="edSave">Save to Cloud</button>
@@ -307,10 +369,10 @@ template { display:none; }
 
 <template id="tplShow">
   <div class="row js-show">
-    <div class="c w-time"><label>Time</label><input class="js-time" placeholder="09:00"></div>
-    <div class="c"><label>Film</label><input class="js-title"></div>
+    <div class="c w-time"><label>Time <span class="help-tip" title="Starttidspunkt i formatet HH:MM">?</span></label><input class="js-time" placeholder="09:00"></div>
+    <div class="c"><label>Film <span class="help-tip" title="Filmens fulde titel">?</span></label><input class="js-title"></div>
     
-    <div class="c"><label>Audio / Note</label>
+    <div class="c"><label>Audio / Note <span class="help-tip" title="Vises med småt under filmtitlen">?</span></label>
       <select class="js-note">
         <option value="">- Ingen note -</option>
         <option value="Danish audio">Danish audio</option>
@@ -321,14 +383,14 @@ template { display:none; }
       </select>
     </div>
     
-    <div class="c w-dur"><label>Minutes</label><input class="js-dur" type="number" placeholder="95"></div>
+    <div class="c w-dur"><label>Minutes <span class="help-tip" title="Filmens spilletid. Bruges til at vise statusbaren og fjerne filmen, når den er slut.">?</span></label><input class="js-dur" type="number" placeholder="95"></div>
     <div class="c w-dur"><button class="btn ghost tiny js-del">Remove</button></div>
   </div>
 </template>
 
 <template id="tplPrice">
   <div class="row js-price">
-    <div class="c w-price"><label>Label</label>
+    <div class="c w-price"><label>Label <span class="help-tip" title="Målgruppen for prisen">?</span></label>
       <select class="js-head">
         <option value="Adult">Adult</option>
         <option value="Child">Child</option>
@@ -574,7 +636,6 @@ template { display:none; }
   }
 
   function renderHead() {
-    // Hvis data mangler (f.eks. ved fejl på databasegemning), falder vi tilbage på standardteksterne
     txt($('uiHeading'), data.heading || 'Cinema Programme');
     txt($('uiTimeHeading'), data.timeHeading || 'Ship Time \u00b7 Faroe');
   }
@@ -583,11 +644,9 @@ template { display:none; }
     var d = new Date();
     txt($('uiClock'), pad(d.getHours()) + ':' + pad(d.getMinutes()));
     
-    // Sikkerhedsnet: Brug faste ugedage og måneder, hvis de mangler fra databasen
     var days = data.days || ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
     var months = data.months || ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
     
-    // Beregn GMT offset præcis som på dit referencebillede
     var offset = -(d.getTimezoneOffset() / 60);
     var gmtStr = 'GMT' + (offset >= 0 ? '+' : '') + offset;
     
@@ -615,6 +674,15 @@ template { display:none; }
   }
 
   function applyLayout() {
+    // Styling og størrelser
+    var st = data.style || {};
+    document.body.style.setProperty('--font-family', st.fontFamily || "'Inter', Arial, sans-serif");
+    document.body.style.setProperty('--sz-title', (st.szTitle || 1.7) + 'vh');
+    document.body.style.setProperty('--sz-time', (st.szTime || 2.4) + 'vh');
+    document.body.style.setProperty('--sz-msg', (st.szMsg || 1.8) + 'vh');
+    document.body.style.setProperty('--sz-clock', (st.szClock || 4.0) + 'vh');
+
+    // Layout
     var rWidth = (data.layout && data.layout.railWidth) ? parseFloat(data.layout.railWidth) : 17;
     var bHeight = (data.layout && data.layout.barHeight) ? parseFloat(data.layout.barHeight) : 11;
     
@@ -685,11 +753,17 @@ template { display:none; }
     var defaultMonths = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
     var out = {
+      style: {
+        fontFamily: $('edFontFamily').value,
+        szTitle: $('edSzTitle').value,
+        szTime: $('edSzTime').value,
+        szMsg: $('edSzMsg').value,
+        szClock: $('edSzClock').value
+      },
       layout: {
         railWidth: $('edRailWidth').value,
         barHeight: $('edBarHeight').value
       },
-      // Sikkerhedsnet ved gem til databasen
       heading: $('edHeading').value || 'Cinema Programme',
       venue: data.venue || 'Deck 8',
       ticketsHeading: $('edVenue').value || 'Tickets',
@@ -743,8 +817,19 @@ template { display:none; }
     $('edPrices').innerHTML = '';
 
     document.body.className = 'mode-edit';
+    
+    // Style settings indlæses
+    $('edFontFamily').value = (data.style && data.style.fontFamily) ? data.style.fontFamily : "'Inter', Arial, sans-serif";
+    $('edSzTitle').value = (data.style && data.style.szTitle) ? data.style.szTitle : '1.7';
+    $('edSzTime').value = (data.style && data.style.szTime) ? data.style.szTime : '2.4';
+    $('edSzMsg').value = (data.style && data.style.szMsg) ? data.style.szMsg : '1.8';
+    $('edSzClock').value = (data.style && data.style.szClock) ? data.style.szClock : '4.0';
+
+    // Layout
     $('edRailWidth').value = (data.layout && data.layout.railWidth) ? data.layout.railWidth : '17';
     $('edBarHeight').value = (data.layout && data.layout.barHeight) ? data.layout.barHeight : '11';
+    
+    // Tekster
     $('edHeading').value = data.heading || 'Cinema Programme';
     $('edVenue').value = data.ticketsHeading || 'Tickets';
     $('edTimeHeading').value = data.timeHeading || 'Ship Time \u00b7 Faroe';
