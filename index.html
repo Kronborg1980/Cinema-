@@ -13,7 +13,6 @@
    Same palette and type as Kronborgs Widget: black panels, cyan to
    blue accents, Inter, letterspaced module headers.
    Modes:  (none)      full screen, centre left transparent for video
-           ?rail=11    narrower panel, any width in vw (default 17)
            ?mode=rail  right panel only
            ?mode=bar   bottom bar only
            ?edit=1     editor
@@ -197,7 +196,7 @@ body.mode-edit .stage { display:none; }
 }
 .btn.ghost { background:transparent; color:#f8fafc; border:1px solid rgba(0,242,254,0.35); }
 .btn.tiny { padding:8px 10px; font-size:13px; }
-.actions { margin-top:22px; }
+.actions { margin-top:22px; padding-bottom: 20px; }
 .actions .btn { margin-right:10px; }
 .out { margin-top:18px; display:none; }
 .out textarea { height:220px; font-family:Consolas,Menlo,monospace; font-size:12px; }
@@ -207,8 +206,13 @@ template { display:none; }
 </head>
 <body>
 
+<!-- Standard data (Inkluderer layout-opsætning og sjove film) -->
 <script type="application/json" id="cinema-data">
 {
+  "layout": {
+    "railWidth": "17",
+    "barHeight": "11"
+  },
   "heading": "Cinema Programme",
   "venue": "Deck 8",
   "timeHeading": "Ship Time \u00b7 Faroe",
@@ -262,6 +266,12 @@ template { display:none; }
   <h1>Cinema programme</h1>
   <p class="lead">Edit the schedule. When you click <b>Save to Cloud</b>, the digital signage will update automatically within a few minutes.</p>
 
+  <h2>Layout / Udseende</h2>
+  <div class="row">
+    <div class="c w-price"><label>Højre bjælkes bredde (Standard: 17)</label><input id="edRailWidth" placeholder="17"></div>
+    <div class="c w-price"><label>Bundlinjens højde (Standard: 11)</label><input id="edBarHeight" placeholder="11"></div>
+  </div>
+
   <h2>Headings</h2>
   <div class="row">
     <div class="c"><label>Panel heading</label><input id="edHeading"></div>
@@ -289,6 +299,7 @@ template { display:none; }
   <div class="actions">
     <button class="btn" id="edSave">Save to Cloud</button>
     <button class="btn ghost" id="edPreview">Preview screen</button>
+    <button class="btn ghost" id="edReset" style="float: right;">Indlæs test-data (Gode film)</button>
   </div>
   <div class="out"><label>JSON</label><textarea id="edOut" readonly></textarea></div>
 </div>
@@ -570,7 +581,26 @@ template { display:none; }
     }, 450);
   }
 
+  function applyLayout() {
+    var rWidth = (data.layout && data.layout.railWidth) ? parseFloat(data.layout.railWidth) : 17;
+    var bHeight = (data.layout && data.layout.barHeight) ? parseFloat(data.layout.barHeight) : 11;
+    
+    // Sikkerhedsnet mod forkerte indtastninger
+    if (isNaN(rWidth) || rWidth < 5) rWidth = 17;
+    if (isNaN(bHeight) || bHeight < 5) bHeight = 11;
+    
+    var rail = document.querySelector('.rail');
+    var bar = document.querySelector('.footbar');
+    
+    if (rail) { rail.style.width = rWidth + 'vw'; }
+    if (bar) { 
+      bar.style.right = rWidth + 'vw';
+      bar.style.height = bHeight + 'vh'; 
+    }
+  }
+
   function renderAll() {
+    applyLayout();
     renderHead();
     renderShows();
     renderFootbar();
@@ -581,15 +611,6 @@ template { display:none; }
   function param(name) {
     var m = new RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
     return m ? decodeURIComponent(m[1]) : '';
-  }
-
-  function setRailWidth(vw) {
-    var n = parseFloat(vw);
-    if (isNaN(n) || n < 5 || n > 45) { return; }
-    var rail = document.getElementsByClassName('rail')[0];
-    var bar = $('uiFootbar');
-    if (rail) { rail.style.width = n + 'vw'; }
-    if (bar) { bar.style.right = n + 'vw'; }
   }
 
   /* ---------------- editor ---------------- */
@@ -625,6 +646,10 @@ template { display:none; }
 
   function collect() {
     var out = {
+      layout: {
+        railWidth: $('edRailWidth').value,
+        barHeight: $('edBarHeight').value
+      },
       heading: $('edHeading').value,
       venue: data.venue,
       ticketsHeading: $('edVenue').value,
@@ -674,7 +699,13 @@ template { display:none; }
   function buildJson() { $('edOut').value = JSON.stringify(collect(), null, 2); }
 
   function startEditor() {
+    // Slet gammelt indhold så vi ikke duplikerer, når der trykkes "Indlæs test-data"
+    $('edShows').innerHTML = '';
+    $('edPrices').innerHTML = '';
+
     document.body.className = 'mode-edit';
+    $('edRailWidth').value = (data.layout && data.layout.railWidth) ? data.layout.railWidth : '17';
+    $('edBarHeight').value = (data.layout && data.layout.barHeight) ? data.layout.barHeight : '11';
     $('edHeading').value = data.heading || '';
     $('edVenue').value = data.ticketsHeading || '';
     $('edTimeHeading').value = data.timeHeading || '';
@@ -686,10 +717,20 @@ template { display:none; }
     for (i = 0; i < (data.shows || []).length; i++) { addShowRow(data.shows[i]); }
     for (i = 0; i < (data.prices || []).length; i++) { addPriceRow(data.prices[i]); }
     buildJson();
+  }
 
+  function bindEditorEvents() {
     $('edAddShow').onclick = function () { addShowRow(null); buildJson(); };
     $('edAddPrice').onclick = function () { addPriceRow(null); buildJson(); };
     
+    // Nulstil til test-data funktion
+    $('edReset').onclick = function () {
+      if(confirm("Vil du slette det nuværende (tomme) indhold og indlæse test-programmet med filmene?")) {
+        data = readLocal(); // Læser de dumme film fra bunden af HTML filen
+        startEditor();
+      }
+    };
+
     // --- GEM TIL CLOUDFLARE LOGIK ---
     $('edSave').onclick = function () {
       buildJson();
@@ -722,6 +763,7 @@ template { display:none; }
       renderAll();
       rotateMessage();
     };
+
     var ed = document.getElementsByClassName('editor')[0];
     ed.onkeyup = buildJson;
     ed.onchange = buildJson;
@@ -732,15 +774,18 @@ template { display:none; }
   function boot() {
     var mode = param('mode');
     if (mode === 'rail' || mode === 'bar') { document.body.className = 'mode-' + mode; }
-    setRailWidth(param('rail'));
 
-    // Prøv at hente fra skyen først, brug lokal backup hvis det fejler
+    bindEditorEvents();
+
+    // Prøv at hente fra skyen først, brug lokal backup (med de dumme film) hvis skyen er tom eller fejler
     loadRemote(function (o) { 
-      if (o) { 
+      // Hvis databasen i skyen er fuldstændig tom (ingen shows), indlæser vi standard-data alligevel
+      if (o && o.shows && o.shows.length > 0) { 
         data = o; 
       } else {
         data = cacheGet() || readLocal();
       }
+      
       renderAll();
       rotateMessage();
 
