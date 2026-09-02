@@ -937,18 +937,27 @@ template { display:none; }
     if (isNaN(rWidth) || rWidth < 5) { rWidth = 17; }
     if (isNaN(bHeight) || bHeight < 5) { bHeight = 11; }
 
+    var cls = document.body.className;
+    var railOnly = cls.indexOf('mode-rail') > -1;
+    var barOnly = cls.indexOf('mode-bar') > -1;
+
     var rail = document.querySelector('.rail');
     var bar = document.querySelector('.footbar');
+
     if (rail) {
-      rail.style.width = rWidth + 'vw';
-      /* indent is 7% of the rail's own width, kept in vw so it scales
-         with the rail and not with the screen */
-      var padVw = Math.round(rWidth * 7) / 100;
-      if (padVw < 0.4) { padVw = 0.4; }
-      rail.style.paddingLeft = padVw + 'vw';
-      rail.style.paddingRight = padVw + 'vw';
+      /* in rail-only mode the panel fills its frame, so leave the
+         stylesheet width alone */
+      if (!railOnly) { rail.style.width = rWidth + 'vw'; }
+      /* indent measured from the rail's real pixel width, so it is
+         correct whatever the page is embedded in */
+      var w = rail.offsetWidth || 0;
+      var padPx = Math.round(w * 0.07);
+      if (padPx < 6) { padPx = 6; }
+      if (padPx > 46) { padPx = 46; }
+      rail.style.paddingLeft = padPx + 'px';
+      rail.style.paddingRight = padPx + 'px';
     }
-    if (bar) {
+    if (bar && !barOnly) {
       bar.style.right = rWidth + 'vw';
       bar.style.height = bHeight + 'vh';
     }
@@ -1253,6 +1262,12 @@ template { display:none; }
         if (d.getHours() === 3 && d.getMinutes() === 0) { window.location.reload(); }
       }, 60000);
     });
+  }
+
+  if (window.addEventListener) {
+    window.addEventListener('resize', function () {
+      if (data) { applyLayout(); }
+    }, false);
   }
 
   if (document.readyState === 'loading') {
