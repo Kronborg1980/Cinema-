@@ -146,7 +146,7 @@ body {
 .fmodule {
   position:relative;
   flex:0 1 auto; min-width:0; overflow:hidden;
-  padding:1.4vh 1.2vw 1.2vh 1.2vw; text-align:center;
+  padding:1.4vh .8vw 1.2vh .8vw; text-align:center;
   display:flex; flex-direction:column; align-items:center;
 }
 .fmodule::after {
@@ -157,9 +157,9 @@ body {
 .fmodule:last-child::after { display:none; }
 
 /* fixed track widths - content never changes them */
-.fmodule.is-price { flex-basis:10vw; width:10vw; }
-.fmodule.is-info  { flex-basis:17vw; width:17vw; }
-.fmodule.is-offer { flex-basis:15vw; width:15vw; }
+.fmodule.is-price { flex-basis:12vw; width:12vw; }
+.fmodule.is-info  { flex-basis:16vw; width:16vw; }
+.fmodule.is-offer { flex-basis:14vw; width:14vw; }
 .fmodule.cta      { flex-basis:30vw; width:30vw; }
 
 .fhead {
@@ -187,7 +187,7 @@ body {
 }
 .price em, .offer-price em {
   -webkit-flex:1 1 0px; flex:1 1 0px; min-width:0;
-  text-align:left; font-style:normal; color:#00f2fe; padding-left:.35vw;
+  text-align:left; font-style:normal; color:#00f2fe; padding-left:.4em;
 }
 .price em { font-size:1.3vh; }
 
@@ -216,6 +216,9 @@ body.mode-bar .price em { font-size:13vh; }
 body.mode-bar .message { font-size:17vh; }
 body.mode-bar .finfo { font-size:15vh; }
 body.mode-bar .offer-price { font-size:20vh; }
+body.mode-bar .price, body.mode-bar .offer-price { display:block; text-align:center; }
+body.mode-bar .price .js-val, body.mode-bar .offer-price .js-val,
+body.mode-bar .price em, body.mode-bar .offer-price em { display:inline; }
 body.mode-bar .offer-price em { font-size:11vh; }
 body.mode-bar .fmodule { padding:0 2vw; }
 body.mode-bar .fmodule.is-price { flex-basis:13vw; width:13vw; }
@@ -476,10 +479,10 @@ template { display:none; }
 
       <div class="panel">
         <h2>Tilbud</h2>
-        <div class="hint">Skriv kun teksten her — prisen skrives i prisfeltet, så den også omregnes til EUR.</div>
+        <div class="hint">Skriv kun teksten her. Prisen hører til i prisfeltet — ellers bliver den ikke omregnet til EUR.</div>
         <div class="grid">
           <div class="f md"><label>Overskrift</label><input id="edOffersHead" placeholder="Combo"></div>
-          <div class="f"><label>Tekst</label><input id="edOffersText" placeholder="Ticket &amp; Popcorn"></div>
+          <div class="f wide"><label>Tekst</label><textarea id="edOffersText" rows="2" placeholder="Ticket &amp; Popcorn"></textarea></div>
         </div>
         <div class="grid" style="margin-top:14px">
           <div class="f sm"><label>Pris</label><input id="edOffersValue" type="number" placeholder="120"></div>
