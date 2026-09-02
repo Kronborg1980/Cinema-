@@ -13,6 +13,7 @@
    Same palette and type as Kronborgs Widget: black panels, cyan to
    blue accents, Inter, letterspaced module headers.
    Modes:  (none)      full screen, centre left transparent for video
+           ?rail=11    narrower panel, any width in vw (default 17)
            ?mode=rail  right panel only
            ?mode=bar   bottom bar only
            ?edit=1     editor
@@ -31,7 +32,7 @@ body {
 /* ---------- RIGHT PANEL ---------- */
 .rail {
   position:absolute; top:0; right:0; bottom:0;
-  width:21vw; min-width:250px;
+  width:17vw; min-width:220px;
   background:#000000;
   display:flex; flex-direction:column;
   padding:0 1.3vw 1.4vh 1.3vw;
@@ -119,7 +120,7 @@ body {
 
 /* ---------- BOTTOM BAR ---------- */
 .footbar {
-  position:absolute; left:0; bottom:0; right:21vw;
+  position:absolute; left:0; bottom:0; right:17vw;
   height:11vh; min-height:70px;
   background:#000000;
   display:flex; align-items:stretch; justify-content:center;
@@ -212,7 +213,7 @@ template { display:none; }
 <script type="application/json" id="cinema-data">
 {
   "heading": "Cinema Programme",
-  "venue": "Deck 5",
+  "venue": "Deck 8",
   "timeHeading": "Ship Time \u00b7 Faroe",
   "ticketsHeading": "Tickets",
   "labels": {
@@ -232,8 +233,8 @@ template { display:none; }
     { "head": "Doors", "text": "Open 10 minutes\nbefore each screening" }
   ],
   "messages": [
-    "Buy your tickets for the Norr\u00f6na Cinema\nat the Reception on deck 5",
-    "K\u00f8b billetter til Norr\u00f6na Cinema\ni receptionen p\u00e5 deck 5"
+    "Buy your tickets for the Norr\u00f6na Cinema\nat the Reception on deck 7",
+    "K\u00f8b billetter til Norr\u00f6na Cinema\ni receptionen p\u00e5 deck 7"
   ],
   "shows": [
     { "time": "09:00", "title": "The Super Mario Galaxy Movie", "note": "Danish audio", "dur": 92 },
@@ -590,6 +591,18 @@ template { display:none; }
     return m ? decodeURIComponent(m[1]) : '';
   }
 
+  /* The panel width drives how much room the trailer gets, so it is tunable
+     from the booking URL: ?rail=11 gives a 16:9 window on a 1920x1080 screen
+     with the bar at its current height. */
+  function setRailWidth(vw) {
+    var n = parseFloat(vw);
+    if (isNaN(n) || n < 5 || n > 45) { return; }
+    var rail = document.getElementsByClassName('rail')[0];
+    var bar = $('uiFootbar');
+    if (rail) { rail.style.width = n + 'vw'; }
+    if (bar) { bar.style.right = n + 'vw'; }
+  }
+
   /* ---------------- editor ---------------- */
 
   function addRow(tplId, hostId, cls, fill) {
@@ -718,6 +731,7 @@ template { display:none; }
   function boot() {
     var mode = param('mode');
     if (mode === 'rail' || mode === 'bar') { document.body.className = 'mode-' + mode; }
+    setRailWidth(param('rail'));
 
     data = cacheGet() || readLocal();
     renderAll();
