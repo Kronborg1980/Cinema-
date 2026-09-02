@@ -26,10 +26,12 @@ body {
 /* ---------- RIGHT PANEL ---------- */
 .rail {
   position:absolute; top:0; right:0; bottom:0;
-  width:17vw; min-width:220px;
+  width:17vw; min-width:200px;
   background:#000000;
   display:flex; flex-direction:column;
-  padding:0 1.3vw 1.4vh 1.3vw;
+  /* padding in % of the rail itself, so it scales with the rail width
+     instead of with the screen width */
+  padding:0 6% 1.4vh 6%;
   overflow:hidden;
 }
 .rail::before {
@@ -55,18 +57,20 @@ body {
   display:flex; flex-direction:column; justify-content:center;
 }
 
-.show { position:relative; padding:1.5vh .2vw; }
+.show { position:relative; padding:1.5vh 0; }
 .show + .show::before {
-  content:""; position:absolute; top:0; left:8%; width:84%; height:1px;
+  content:""; position:absolute; top:0; left:4%; width:92%; height:1px;
   background:-webkit-linear-gradient(left, rgba(0,242,254,0), rgba(0,242,254,0.18), rgba(0,242,254,0));
   background:linear-gradient(90deg, rgba(0,242,254,0), rgba(0,242,254,0.18), rgba(0,242,254,0));
 }
-.show .head { display:flex; align-items:center; }
+/* wrap instead of overflowing: on a narrow rail the status pill drops to
+   its own line rather than being cut off at the right edge */
+.show .head { display:flex; -webkit-flex-wrap:wrap; flex-wrap:wrap; align-items:center; min-width:0; }
 .show .time {
   font-size: var(--sz-time, 2.4vh); font-weight:600; color:#ffffff; line-height:1; letter-spacing:.02em;
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: tabular-nums; -webkit-flex:0 0 auto; flex:0 0 auto;
 }
-.show .title { font-size: var(--sz-title, 1.7vh); font-weight:600; color:#ffffff; line-height:1.25; margin-top:.8vh; }
+.show .title { font-size: var(--sz-title, 1.7vh); font-weight:600; color:#ffffff; line-height:1.25; margin-top:.8vh; word-wrap:break-word; overflow-wrap:break-word; }
 .show .note { font-size:1.25vh; color:#94a3b4; margin-top:.45vh; letter-spacing:.02em; min-height:1.7vh; }
 
 .show.is-live .time { color:#ffffff; }
@@ -79,11 +83,11 @@ body {
   background:#00f2fe; box-shadow:0 0 7px rgba(0,242,254,0.7);
 }
 .tag {
-  margin-left:auto; white-space:nowrap;
-  font-size:1.05vh; font-weight:700; letter-spacing:.14em; text-transform:uppercase;
+  margin-left:auto; white-space:nowrap; -webkit-flex:0 0 auto; flex:0 0 auto;
+  font-size:1vh; font-weight:700; letter-spacing:.11em; text-transform:uppercase;
   color:#cbd5e1; background:rgba(6,11,25,0.75);
   border:1px solid rgba(0,242,254,0.2); border-radius:20px;
-  padding:.45vh .55vw;
+  padding:.4vh .6em;
 }
 .tag.live { color:#00f2fe; }
 .tag.plain { background:transparent; border-color:transparent; color:#64748b; padding-right:0; }
