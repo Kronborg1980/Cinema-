@@ -199,7 +199,7 @@ body.mode-edit .stage { display:none; }
 .btn.tiny { padding:8px 10px; font-size:13px; }
 .actions { margin-top:22px; }
 .actions .btn { margin-right:10px; }
-.out { margin-top:18px; }
+.out { margin-top:18px; display:none; }
 .out textarea { height:220px; font-family:Consolas,Menlo,monospace; font-size:12px; }
 template { display:none; }
 @media (max-width:700px){ .row { flex-wrap:wrap; } .row .c { flex:1 1 100%; } }
@@ -207,9 +207,6 @@ template { display:none; }
 </head>
 <body>
 
-<!-- =========================================================
-     PROGRAMME DATA - edit here, or use ?edit=1
-     ========================================================= -->
 <script type="application/json" id="cinema-data">
 {
   "heading": "Cinema Programme",
@@ -263,7 +260,7 @@ template { display:none; }
 <!-- =========================== EDITOR =========================== -->
 <div class="editor">
   <h1>Cinema programme</h1>
-  <p class="lead">Edit the texts, press <b>Save file</b> and upload cinema.json where the screen reads it from.</p>
+  <p class="lead">Edit the schedule. When you click <b>Save to Cloud</b>, the digital signage will update automatically within a few minutes.</p>
 
   <h2>Headings</h2>
   <div class="row">
@@ -290,8 +287,7 @@ template { display:none; }
   <div class="c"><textarea id="edMessages" rows="6"></textarea></div>
 
   <div class="actions">
-    <button class="btn" id="edSave">Save file</button>
-    <button class="btn ghost" id="edCopy">Copy JSON</button>
+    <button class="btn" id="edSave">Save to Cloud</button>
     <button class="btn ghost" id="edPreview">Preview screen</button>
   </div>
   <div class="out"><label>JSON</label><textarea id="edOut" readonly></textarea></div>
@@ -317,14 +313,12 @@ template { display:none; }
 </template>
 
 <script>
-/* ES5 only, pure ASCII source. All display text comes from the JSON block. */
 (function () {
   'use strict';
 
-  /* Point this at a JSON file to update the screen without touching the CMS,
-     e.g. "https://kronborg1980.github.io/signage/cinema.json" */
-  var REMOTE_URL = '';
-  var REMOTE_REFRESH_MS = 300000;
+  var REMOTE_URL = 'https://norrona-cinema-api.kronborgnielsen.workers.dev'; 
+  
+  var REMOTE_REFRESH_MS = 60000; // Skærmene henter nyt data hvert minut
   var TICK_MS = 10000;
   var MESSAGE_MS = 12000;
 
@@ -492,8 +486,6 @@ template { display:none; }
     }
   }
 
-  /* Line breaks in the data become real breaks, so a two-line message stays
-     two lines instead of wrapping wherever the panel happens to end. */
   function lines(node, s) {
     while (node.firstChild) { node.removeChild(node.firstChild); }
     var parts = ('' + (s || '')).split('\n');
@@ -591,9 +583,6 @@ template { display:none; }
     return m ? decodeURIComponent(m[1]) : '';
   }
 
-  /* The panel width drives how much room the trailer gets, so it is tunable
-     from the booking URL: ?rail=11 gives a 16:9 window on a 1920x1080 screen
-     with the bar at its current height. */
   function setRailWidth(vw) {
     var n = parseFloat(vw);
     if (isNaN(n) || n < 5 || n > 45) { return; }
@@ -700,21 +689,33 @@ template { display:none; }
 
     $('edAddShow').onclick = function () { addShowRow(null); buildJson(); };
     $('edAddPrice').onclick = function () { addPriceRow(null); buildJson(); };
+    
+    // --- GEM TIL CLOUDFLARE LOGIK ---
     $('edSave').onclick = function () {
       buildJson();
-      var blob = new Blob([$('edOut').value], { type: 'application/json' });
-      var a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'cinema.json';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+      var btn = $('edSave');
+      btn.innerText = "Saving to Cloud...";
+      
+      fetch(REMOTE_URL, {
+        method: 'POST',
+        body: $('edOut').value,
+        headers: { 'Content-Type': 'application/json' }
+      })
+      .then(function(res) {
+        if (res.ok) {
+          btn.innerText = "Saved Successfully!";
+          setTimeout(function() { btn.innerText = "Save to Cloud"; }, 2500); 
+        } else {
+          alert("Error saving to the server.");
+          btn.innerText = "Save to Cloud";
+        }
+      })
+      .catch(function(err) {
+        alert("Connection error. Ensure you have internet access.");
+        btn.innerText = "Save to Cloud";
+      });
     };
-    $('edCopy').onclick = function () {
-      buildJson();
-      $('edOut').select();
-      try { document.execCommand('copy'); } catch (e) {}
-    };
+
     $('edPreview').onclick = function () {
       data = collect();
       document.body.className = '';
@@ -733,23 +734,31 @@ template { display:none; }
     if (mode === 'rail' || mode === 'bar') { document.body.className = 'mode-' + mode; }
     setRailWidth(param('rail'));
 
-    data = cacheGet() || readLocal();
-    renderAll();
-    rotateMessage();
+    // Prøv at hente fra skyen først, brug lokal backup hvis det fejler
+    loadRemote(function (o) { 
+      if (o) { 
+        data = o; 
+      } else {
+        data = cacheGet() || readLocal();
+      }
+      renderAll();
+      rotateMessage();
 
-    if (param('edit')) { startEditor(); return; }
+      if (param('edit')) { startEditor(); return; }
 
-    loadRemote(function (o) { if (o) { data = o; renderAll(); } });
-
-    window.setInterval(function () { renderShows(); renderClock(); }, TICK_MS);
-    window.setInterval(rotateMessage, MESSAGE_MS);
-    window.setInterval(function () {
-      loadRemote(function (o) { if (o) { data = o; renderAll(); } });
-    }, REMOTE_REFRESH_MS);
-    window.setInterval(function () {
-      var d = new Date();
-      if (d.getHours() === 3 && d.getMinutes() === 0) { window.location.reload(); }
-    }, 60000);
+      window.setInterval(function () { renderShows(); renderClock(); }, TICK_MS);
+      window.setInterval(rotateMessage, MESSAGE_MS);
+      
+      // Skærmen opdaterer fra skyen automatisk
+      window.setInterval(function () {
+        loadRemote(function (o) { if (o) { data = o; renderAll(); } });
+      }, REMOTE_REFRESH_MS);
+      
+      window.setInterval(function () {
+        var d = new Date();
+        if (d.getHours() === 3 && d.getMinutes() === 0) { window.location.reload(); }
+      }, 60000);
+    });
   }
 
   if (document.readyState === 'loading') {
