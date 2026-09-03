@@ -40,7 +40,7 @@ body {
 }
 
 .module-header {
-  text-align:center; font-size:1.05vh; font-weight:700; letter-spacing:.24em;
+  text-align:center; font-size: var(--sz-head, 1.05vh); font-weight:700; letter-spacing:.24em;
   color:#94a3b4; text-transform:uppercase; padding-top:1.7vh;
 }
 /* the cinema name scales on its own, from the back office */
@@ -92,7 +92,7 @@ body {
   font-variant-numeric: tabular-nums; -webkit-flex:0 0 auto; flex:0 0 auto;
 }
 .show .title { font-size: var(--sz-title, 1.7vh); font-weight:600; color:#ffffff; line-height:1.25; margin-top:.8vh; word-wrap:break-word; overflow-wrap:break-word; }
-.show .note { font-size:1.25vh; color:#94a3b4; margin-top:.45vh; letter-spacing:.02em; min-height:1.7vh; }
+.show .note { font-size: var(--sz-note, 1.25vh); color:#94a3b4; margin-top:.45vh; letter-spacing:.02em; min-height:1.7vh; }
 
 .show.is-live .time { color:#ffffff; }
 .show.is-live .note { color:#00f2fe; font-weight:600; }
@@ -105,7 +105,7 @@ body {
 /* sits next to the time, not pinned to the far edge of the panel */
 .tag {
   margin-left:.7em; white-space:nowrap; -webkit-flex:0 0 auto; flex:0 0 auto;
-  font-size:1vh; font-weight:700; letter-spacing:.11em; text-transform:uppercase;
+  font-size: var(--sz-tag, 1vh); font-weight:700; letter-spacing:.11em; text-transform:uppercase;
   color:#cbd5e1; background:rgba(6,11,25,0.75);
   border:1px solid rgba(0,242,254,0.2); border-radius:20px;
   padding:.4vh .6em;
@@ -143,7 +143,7 @@ body {
   background:linear-gradient(90deg, #00f2fe, #4facfe);
 }
 .clock-date {
-  font-size:1.15vh; color:#94a3b4; margin-top:.8vh;
+  font-size: var(--sz-date, 1.15vh); color:#94a3b4; margin-top:.8vh;
   text-transform:uppercase; letter-spacing:.12em;
 }
 
@@ -195,7 +195,7 @@ body {
 
 .fhead {
   flex:0 0 auto;
-  font-size:1vh; font-weight:700; letter-spacing:.24em; color:#94a3b4;
+  font-size: var(--sz-head, 1vh); font-weight:700; letter-spacing:.24em; color:#94a3b4;
   text-transform:uppercase; line-height:1;
   margin-bottom:.8vh; white-space:nowrap;
 }
@@ -212,7 +212,7 @@ body {
   -webkit-box-align:baseline; -webkit-align-items:baseline; align-items:baseline;
   width:100%; font-weight:600; color:#ffffff; line-height:1; white-space:nowrap;
 }
-.price { font-size:2.6vh; }
+.price { font-size: var(--sz-price, 2.6vh); }
 .price .js-val, .offer-price .js-val {
   -webkit-flex:1 1 0px; flex:1 1 0px; min-width:0;
   text-align:right; font-variant-numeric: tabular-nums;
@@ -221,9 +221,10 @@ body {
   -webkit-flex:1 1 0px; flex:1 1 0px; min-width:0;
   text-align:left; font-style:normal; color:#00f2fe; padding-left:.4em;
 }
-.price em { font-size:1.3vh; }
+/* the currency follows the number, so one setting covers both */
+.price em { font-size:.5em; }
 
-.finfo { font-size:1.55vh; font-weight:500; color:#cbd5e1; line-height:1.25; }
+.finfo { font-size: var(--sz-info, 1.55vh); font-weight:500; color:#cbd5e1; line-height:1.25; }
 .finfo span, .message span { display:block; }
 
 .message {
@@ -233,8 +234,8 @@ body {
 .message b { color:#00f2fe; font-weight:600; }
 .message.fade { opacity:0; }
 
-.offer-price { font-size:2.2vh; margin-top:.4vh; }
-.offer-price em { font-size:1.2vh; }
+.offer-price { font-size: var(--sz-offer, 2.2vh); margin-top:.4vh; }
+.offer-price em { font-size:.55em; }
 .offer-text { line-height:1.15; }
 
 /* ---------- MODES ---------- */
@@ -404,8 +405,15 @@ template { display:none; }
     "szHeading": "1.05",
     "szTitle": "1.7",
     "szTime": "2.4",
+    "szNote": "1.25",
+    "szTag": "1",
+    "szClock": "4",
+    "szDate": "1.15",
+    "szHead": "1",
+    "szPrice": "2.6",
+    "szInfo": "1.55",
     "szMsg": "1.8",
-    "szClock": "4"
+    "szOffer": "2.2"
   },
   "layout": {
     "railWidth": "17",
@@ -572,7 +580,17 @@ template { display:none; }
         <div class="f sm"><label>Filmtitel <span class="help" title="Standard 1.7">?</span></label><input id="edSzTitle" type="number" step="0.1" placeholder="1.7"></div>
         <div class="f sm"><label>Klokkesl&#230;t <span class="help" title="Standard 2.4">?</span></label><input id="edSzTime" type="number" step="0.1" placeholder="2.4"></div>
         <div class="f sm"><label>Ur <span class="help" title="Standard 4.0">?</span></label><input id="edSzClock" type="number" step="0.1" placeholder="4.0"></div>
-        <div class="f sm"><label>Besked <span class="help" title="Standard 1.8">?</span></label><input id="edSzMsg" type="number" step="0.1" placeholder="1.8"></div>
+        <div class="f sm"><label>Filmnote <span class="help" title="Lyd og spilletid under filmtitlen. Standard 1.25">?</span></label><input id="edSzNote" type="number" step="0.05" placeholder="1.25"></div>
+        <div class="f sm"><label>Status-pille <span class="help" title="NOW SHOWING, IN 14 MIN, ENDED. Standard 1.0">?</span></label><input id="edSzTag" type="number" step="0.05" placeholder="1.0"></div>
+        <div class="f sm"><label>Dato <span class="help" title="Linjen under uret. Standard 1.15">?</span></label><input id="edSzDate" type="number" step="0.05" placeholder="1.15"></div>
+      </div>
+
+      <div class="grid" style="margin-top:16px">
+        <div class="f sm"><label>Sm&#229; labels <span class="help" title="ADULT, CHILD, DOORS, TICKETS, SHIP TIME. Standard 1.0">?</span></label><input id="edSzHead" type="number" step="0.05" placeholder="1.0"></div>
+        <div class="f sm"><label>Priser <span class="help" title="Tallene i bunden. Valutaen f&#248;lger med. Standard 2.6">?</span></label><input id="edSzPrice" type="number" step="0.1" placeholder="2.6"></div>
+        <div class="f sm"><label>Info-tekst <span class="help" title="D&#248;re og tilbudstekst. Standard 1.55">?</span></label><input id="edSzInfo" type="number" step="0.05" placeholder="1.55"></div>
+        <div class="f sm"><label>Besked <span class="help" title="Billetteksten i bunden. Standard 1.8">?</span></label><input id="edSzMsg" type="number" step="0.1" placeholder="1.8"></div>
+        <div class="f sm"><label>Tilbudspris <span class="help" title="Standard 2.2">?</span></label><input id="edSzOffer" type="number" step="0.1" placeholder="2.2"></div>
       </div>
 
       <div class="grid" style="margin-top:16px">
@@ -972,8 +990,15 @@ template { display:none; }
     document.body.style.setProperty('--sz-heading', (st.szHeading || 1.05) + 'vh');
     document.body.style.setProperty('--sz-title', (st.szTitle || 1.7) + 'vh');
     document.body.style.setProperty('--sz-time', (st.szTime || 2.4) + 'vh');
-    document.body.style.setProperty('--sz-msg', (st.szMsg || 1.8) + 'vh');
+    document.body.style.setProperty('--sz-note', (st.szNote || 1.25) + 'vh');
+    document.body.style.setProperty('--sz-tag', (st.szTag || 1.0) + 'vh');
     document.body.style.setProperty('--sz-clock', (st.szClock || 4.0) + 'vh');
+    document.body.style.setProperty('--sz-date', (st.szDate || 1.15) + 'vh');
+    document.body.style.setProperty('--sz-head', (st.szHead || 1.0) + 'vh');
+    document.body.style.setProperty('--sz-price', (st.szPrice || 2.6) + 'vh');
+    document.body.style.setProperty('--sz-info', (st.szInfo || 1.55) + 'vh');
+    document.body.style.setProperty('--sz-msg', (st.szMsg || 1.8) + 'vh');
+    document.body.style.setProperty('--sz-offer', (st.szOffer || 2.2) + 'vh');
 
     var rWidth = (data.layout && data.layout.railWidth) ? parseFloat(data.layout.railWidth) : 17;
     var bHeight = (data.layout && data.layout.barHeight) ? parseFloat(data.layout.barHeight) : 11;
@@ -1082,8 +1107,15 @@ template { display:none; }
         szHeading: val('edSzHeading', '1.05'),
         szTitle: val('edSzTitle', '1.7'),
         szTime: val('edSzTime', '2.4'),
+        szNote: val('edSzNote', '1.25'),
+        szTag: val('edSzTag', '1'),
+        szClock: val('edSzClock', '4'),
+        szDate: val('edSzDate', '1.15'),
+        szHead: val('edSzHead', '1'),
+        szPrice: val('edSzPrice', '2.6'),
+        szInfo: val('edSzInfo', '1.55'),
         szMsg: val('edSzMsg', '1.8'),
-        szClock: val('edSzClock', '4')
+        szOffer: val('edSzOffer', '2.2')
       },
       layout: {
         railWidth: val('edRailWidth', '17'),
@@ -1181,8 +1213,15 @@ template { display:none; }
     $('edSzHeading').value = st.szHeading || '1.05';
     $('edSzTitle').value = st.szTitle || '1.7';
     $('edSzTime').value = st.szTime || '2.4';
-    $('edSzMsg').value = st.szMsg || '1.8';
+    $('edSzNote').value = st.szNote || '1.25';
+    $('edSzTag').value = st.szTag || '1';
     $('edSzClock').value = st.szClock || '4';
+    $('edSzDate').value = st.szDate || '1.15';
+    $('edSzHead').value = st.szHead || '1';
+    $('edSzPrice').value = st.szPrice || '2.6';
+    $('edSzInfo').value = st.szInfo || '1.55';
+    $('edSzMsg').value = st.szMsg || '1.8';
+    $('edSzOffer').value = st.szOffer || '2.2';
 
     var ly = data.layout || {};
     $('edRailWidth').value = ly.railWidth || '17';
