@@ -43,6 +43,11 @@ body {
   text-align:center; font-size:1.05vh; font-weight:700; letter-spacing:.24em;
   color:#94a3b4; text-transform:uppercase; padding-top:1.7vh;
 }
+/* the cinema name scales on its own, from the back office */
+.module-header.main {
+  font-size: var(--sz-heading, 1.05vh);
+  color:#cfe0ee; letter-spacing:.2em;
+}
 .module-header span { position:relative; display:inline-block; padding-bottom:.9vh; }
 .module-header span::after {
   content:""; position:absolute; bottom:0; left:50%; width:16px; height:2px;
@@ -50,18 +55,35 @@ body {
   background:-webkit-linear-gradient(left, #00f2fe, #4facfe);
   background:linear-gradient(90deg, #00f2fe, #4facfe);
 }
+/* underline follows the type size instead of staying 16px */
+.module-header.main span::after { width:1.7em; margin-left:-0.85em; }
 
 .shows {
   flex:1 1 auto; min-height:0;
   display:flex; flex-direction:column; justify-content:center;
+  padding:1.4vh 0;
 }
 
-.show { position:relative; padding:1.5vh 0; }
-.show + .show::before {
-  content:""; position:absolute; top:0; left:4%; width:92%; height:1px;
-  background:-webkit-linear-gradient(left, rgba(0,242,254,0), rgba(0,242,254,0.18), rgba(0,242,254,0));
-  background:linear-gradient(90deg, rgba(0,242,254,0), rgba(0,242,254,0.18), rgba(0,242,254,0));
+/* every screening is a card, so the list has edges to hold on to */
+.show {
+  position:relative;
+  padding:1.15vh 0.85em;
+  margin-bottom:.8vh;
+  border-radius:10px;
+  background:rgba(255,255,255,0.028);
+  border:1px solid rgba(148,163,180,0.18);
 }
+.show:last-child { margin-bottom:0; }
+.show.is-live, .show.is-next {
+  background:rgba(0,242,254,0.07);
+  border-color:rgba(0,242,254,0.42);
+  box-shadow:0 0 20px rgba(0,242,254,0.10);
+}
+.show.is-past {
+  opacity:.42; background:transparent;
+  border-color:rgba(148,163,180,0.10);
+}
+
 /* wrap instead of overflowing: on a narrow rail the status pill drops to
    its own line rather than being cut off at the right edge */
 .show .head { display:flex; -webkit-flex-wrap:wrap; flex-wrap:wrap; align-items:center; min-width:0; }
@@ -74,22 +96,22 @@ body {
 
 .show.is-live .time { color:#ffffff; }
 .show.is-live .note { color:#00f2fe; font-weight:600; }
-.show.is-past { opacity:.34; }
 .show.is-past .time { color:#94a3b4; }
 
 .pin {
-  width:6px; height:6px; border-radius:50%; margin-right:.5vw; flex:0 0 auto;
+  width:6px; height:6px; border-radius:50%; margin-right:.5em; flex:0 0 auto;
   background:#00f2fe; box-shadow:0 0 7px rgba(0,242,254,0.7);
 }
+/* sits next to the time, not pinned to the far edge of the panel */
 .tag {
-  margin-left:auto; white-space:nowrap; -webkit-flex:0 0 auto; flex:0 0 auto;
+  margin-left:.7em; white-space:nowrap; -webkit-flex:0 0 auto; flex:0 0 auto;
   font-size:1vh; font-weight:700; letter-spacing:.11em; text-transform:uppercase;
   color:#cbd5e1; background:rgba(6,11,25,0.75);
   border:1px solid rgba(0,242,254,0.2); border-radius:20px;
   padding:.4vh .6em;
 }
 .tag.live { color:#00f2fe; }
-.tag.plain { background:transparent; border-color:transparent; color:#64748b; padding-right:0; }
+.tag.plain { background:transparent; border-color:transparent; color:#64748b; padding-left:0; padding-right:0; }
 
 /* The progress slot is always present so the list never jumps
    when a screening starts or ends. */
@@ -367,6 +389,7 @@ template { display:none; }
 {
   "style": {
     "fontFamily": "'Inter', Arial, sans-serif",
+    "szHeading": "1.05",
     "szTitle": "1.7",
     "szTime": "2.4",
     "szMsg": "1.8",
@@ -380,7 +403,7 @@ template { display:none; }
     "eurRate": "7.46",
     "eurDecimals": "2"
   },
-  "heading": "Cinema Programme",
+  "heading": "Norr\u00f6na Cinema",
   "venue": "Deck 8",
   "timeHeading": "Ship Time \u00b7 Faroe",
   "ticketsHeading": "Tickets",
@@ -418,7 +441,7 @@ template { display:none; }
 
 <div class="stage">
   <aside class="rail">
-    <div class="module-header"><span id="uiHeading"></span></div>
+    <div class="module-header main"><span id="uiHeading"></span></div>
     <div class="shows" id="uiShows"></div>
     <div class="module-header"><span id="uiTimeHeading"></span></div>
     <div class="rail-foot">
@@ -438,11 +461,11 @@ template { display:none; }
     <div class="ed-top-inner">
       <div>
         <h1>Cinema programme</h1>
-        <div class="sub">Skærmen henter nye data hvert minut efter du gemmer.</div>
+        <div class="sub">Sk&#230;rmen henter nye data hvert minut efter du gemmer.</div>
       </div>
       <div class="grow"></div>
       <div class="ed-status" id="edStatus"></div>
-      <button class="btn ghost" id="edPreview">Se skærmen</button>
+      <button class="btn ghost" id="edPreview">Se sk&#230;rmen</button>
       <button class="btn" id="edSave">Gem til skyen</button>
     </div>
   </div>
@@ -451,7 +474,7 @@ template { display:none; }
 
     <div class="panel">
       <h2>Forestillinger</h2>
-      <div class="hint">Tidspunkt, titel og spilletid. Spilletiden styrer statusbjælken og hvornår filmen markeres som slut.</div>
+      <div class="hint">Tidspunkt, titel og spilletid. Spilletiden styrer statusbj&#230;lken og hvorn&#229;r filmen markeres som slut.</div>
       <div class="rowhead">
         <div class="col-time">Tid</div>
         <div class="col-title">Film</div>
@@ -461,24 +484,24 @@ template { display:none; }
       </div>
       <div class="rows" id="edShows"></div>
       <div class="rowtools">
-        <button class="btn ghost tiny" id="edAddShow">+ Tilføj forestilling</button>
-        <button class="btn ghost tiny" id="edSortShows">Sortér efter tid</button>
+        <button class="btn ghost tiny" id="edAddShow">+ Tilf&#248;j forestilling</button>
+        <button class="btn ghost tiny" id="edSortShows">Sort&#233;r efter tid</button>
       </div>
     </div>
 
     <div class="two">
       <div class="panel">
         <h2>Billetpriser</h2>
-        <div class="hint">Priser i DKK vises skiftevis i DKK og EUR på skærmen.</div>
+        <div class="hint">Priser i DKK vises skiftevis i DKK og EUR p&#229; sk&#230;rmen.</div>
         <div class="rows" id="edPrices"></div>
         <div class="rowtools">
-          <button class="btn ghost tiny" id="edAddPrice">+ Tilføj pris</button>
+          <button class="btn ghost tiny" id="edAddPrice">+ Tilf&#248;j pris</button>
         </div>
       </div>
 
       <div class="panel">
         <h2>Tilbud</h2>
-        <div class="hint">Skriv kun teksten her. Prisen hører til i prisfeltet — ellers bliver den ikke omregnet til EUR.</div>
+        <div class="hint">Skriv kun teksten her. Prisen h&#248;rer til i prisfeltet &#8212; ellers bliver den ikke omregnet til EUR.</div>
         <div class="grid">
           <div class="f md"><label>Overskrift</label><input id="edOffersHead" placeholder="Combo"></div>
           <div class="f wide"><label>Tekst</label><textarea id="edOffersText" rows="2" placeholder="Ticket &amp; Popcorn"></textarea></div>
@@ -496,13 +519,13 @@ template { display:none; }
     <div class="two">
       <div class="panel">
         <h2>Beskeder i bunden</h2>
-        <div class="hint">Adskil hver besked med en tom linje. Skærmen skifter mellem dem hvert 12. sekund.</div>
+        <div class="hint">Adskil hver besked med en tom linje. Sk&#230;rmen skifter mellem dem hvert 12. sekund.</div>
         <textarea id="edMessages" rows="7"></textarea>
       </div>
 
       <div class="panel">
         <h2>Info-boks</h2>
-        <div class="hint">Fast tekst ved siden af beskederne, f.eks. hvornår dørene åbner.</div>
+        <div class="hint">Fast tekst ved siden af beskederne, f.eks. hvorn&#229;r d&#248;rene &#229;bner.</div>
         <div class="grid">
           <div class="f md"><label>Overskrift</label><input id="edDoorsHead" placeholder="Doors"></div>
           <div class="f wide"><label>Tekst</label><textarea id="edDoorsText" rows="3"></textarea></div>
@@ -512,16 +535,16 @@ template { display:none; }
 
     <div class="panel">
       <h2>Overskrifter</h2>
-      <div class="hint">De små labels over hvert område på skærmen.</div>
+      <div class="hint">De sm&#229; labels over hvert omr&#229;de p&#229; sk&#230;rmen.</div>
       <div class="grid">
-        <div class="f"><label>Over programmet</label><input id="edHeading" placeholder="Cinema Programme"></div>
+        <div class="f"><label>Over programmet</label><input id="edHeading" placeholder="Norr&#246;na Cinema"></div>
         <div class="f"><label>Over beskeden i bunden</label><input id="edVenue" placeholder="Tickets"></div>
         <div class="f"><label>Over uret</label><input id="edTimeHeading" placeholder="Ship Time"></div>
       </div>
     </div>
 
     <details class="panel">
-      <summary><span class="caret">&#9656;</span> Design og layout <span class="note">skrifttype, størrelser, bjælkebredder, EUR-kurs</span></summary>
+      <summary><span class="caret">&#9656;</span> Design og layout <span class="note">skrifttype, st&#248;rrelser, bj&#230;lkebredder, EUR-kurs</span></summary>
 
       <div class="grid">
         <div class="f"><label>Skrifttype</label>
@@ -533,16 +556,17 @@ template { display:none; }
             <option value="Arial, sans-serif">Arial</option>
           </select>
         </div>
+        <div class="f sm"><label>Biografnavn <span class="help" title="Overskriften over programmet. Standard 1.05">?</span></label><input id="edSzHeading" type="number" step="0.05" placeholder="1.05"></div>
         <div class="f sm"><label>Filmtitel <span class="help" title="Standard 1.7">?</span></label><input id="edSzTitle" type="number" step="0.1" placeholder="1.7"></div>
-        <div class="f sm"><label>Klokkeslæt <span class="help" title="Standard 2.4">?</span></label><input id="edSzTime" type="number" step="0.1" placeholder="2.4"></div>
+        <div class="f sm"><label>Klokkesl&#230;t <span class="help" title="Standard 2.4">?</span></label><input id="edSzTime" type="number" step="0.1" placeholder="2.4"></div>
         <div class="f sm"><label>Ur <span class="help" title="Standard 4.0">?</span></label><input id="edSzClock" type="number" step="0.1" placeholder="4.0"></div>
         <div class="f sm"><label>Besked <span class="help" title="Standard 1.8">?</span></label><input id="edSzMsg" type="number" step="0.1" placeholder="1.8"></div>
       </div>
 
       <div class="grid" style="margin-top:16px">
-        <div class="f md"><label>Højre bjælke, bredde i % <span class="help" title="Standard 17">?</span></label><input id="edRailWidth" type="number" placeholder="17"></div>
-        <div class="f md"><label>Bundbjælke, højde i % <span class="help" title="Standard 11">?</span></label><input id="edBarHeight" type="number" placeholder="11"></div>
-        <div class="f md"><label>EUR-kurs <span class="help" title="Hvor mange DKK der går på 1 EUR. Standard 7.46">?</span></label><input id="edEurRate" type="number" step="0.01" placeholder="7.46"></div>
+        <div class="f md"><label>H&#248;jre bj&#230;lke, bredde i % <span class="help" title="Standard 17">?</span></label><input id="edRailWidth" type="number" placeholder="17"></div>
+        <div class="f md"><label>Bundbj&#230;lke, h&#248;jde i % <span class="help" title="Standard 11">?</span></label><input id="edBarHeight" type="number" placeholder="11"></div>
+        <div class="f md"><label>EUR-kurs <span class="help" title="Hvor mange DKK der g&#229;r p&#229; 1 EUR. Standard 7.46">?</span></label><input id="edEurRate" type="number" step="0.01" placeholder="7.46"></div>
         <div class="f md"><label>EUR vises som</label>
           <select id="edEurDecimals">
             <option value="2">12.03</option>
@@ -553,10 +577,10 @@ template { display:none; }
     </details>
 
     <details class="panel quiet">
-      <summary><span class="caret">&#9656;</span> Rå JSON <span class="note">det der sendes til Cloudflare</span></summary>
+      <summary><span class="caret">&#9656;</span> R&#229; JSON <span class="note">det der sendes til Cloudflare</span></summary>
       <div class="out"><textarea id="edOut" readonly></textarea></div>
       <div class="rowtools">
-        <button class="btn ghost tiny" id="edReset">Indlæs testprogram</button>
+        <button class="btn ghost tiny" id="edReset">Indl&#230;s testprogram</button>
       </div>
     </details>
 
@@ -742,11 +766,17 @@ template { display:none; }
       var isLive = start <= now && now < end;
       var isPast = now >= end;
       var isNext = (i === nextIdx);
+      /* the card that matters right now: the one playing, or the next one
+         up when nothing is playing */
+      var isFocus = isLive || (isNext && !live);
 
-      var row = el('div', 'show' + (isLive ? ' is-live' : '') + (isPast ? ' is-past' : ''));
+      var row = el('div', 'show' +
+        (isLive ? ' is-live' : '') +
+        (isFocus && !isLive ? ' is-next' : '') +
+        (isPast ? ' is-past' : ''));
 
       var head = el('div', 'head');
-      if (isLive || (isNext && !live)) { head.appendChild(el('span', 'pin')); }
+      if (isFocus) { head.appendChild(el('span', 'pin')); }
 
       var t = el('div', 'time');
       txt(t, s.time || '');
@@ -865,7 +895,7 @@ template { display:none; }
   }
 
   function renderHead() {
-    txt($('uiHeading'), data.heading || 'Cinema Programme');
+    txt($('uiHeading'), data.heading || 'Norr\u00f6na Cinema');
     txt($('uiTimeHeading'), data.timeHeading || 'Ship Time \u00b7 Faroe');
   }
 
@@ -927,6 +957,7 @@ template { display:none; }
   function applyLayout() {
     var st = data.style || {};
     document.body.style.setProperty('--font-family', st.fontFamily || "'Inter', Arial, sans-serif");
+    document.body.style.setProperty('--sz-heading', (st.szHeading || 1.05) + 'vh');
     document.body.style.setProperty('--sz-title', (st.szTitle || 1.7) + 'vh');
     document.body.style.setProperty('--sz-time', (st.szTime || 2.4) + 'vh');
     document.body.style.setProperty('--sz-msg', (st.szMsg || 1.8) + 'vh');
@@ -951,9 +982,9 @@ template { display:none; }
       /* indent measured from the rail's real pixel width, so it is
          correct whatever the page is embedded in */
       var w = rail.offsetWidth || 0;
-      var padPx = Math.round(w * 0.07);
+      var padPx = Math.round(w * 0.055);
       if (padPx < 6) { padPx = 6; }
-      if (padPx > 46) { padPx = 46; }
+      if (padPx > 40) { padPx = 40; }
       rail.style.paddingLeft = padPx + 'px';
       rail.style.paddingRight = padPx + 'px';
     }
@@ -1036,6 +1067,7 @@ template { display:none; }
     var out = {
       style: {
         fontFamily: $('edFontFamily').value,
+        szHeading: val('edSzHeading', '1.05'),
         szTitle: val('edSzTitle', '1.7'),
         szTime: val('edSzTime', '2.4'),
         szMsg: val('edSzMsg', '1.8'),
@@ -1049,7 +1081,7 @@ template { display:none; }
         eurRate: val('edEurRate', '7.46'),
         eurDecimals: $('edEurDecimals').value
       },
-      heading: val('edHeading', 'Cinema Programme'),
+      heading: val('edHeading', 'Norr\u00f6na Cinema'),
       venue: data.venue || 'Deck 8',
       ticketsHeading: val('edVenue', 'Tickets'),
       timeHeading: val('edTimeHeading', 'Ship Time \u00b7 Faroe'),
@@ -1134,6 +1166,7 @@ template { display:none; }
 
     var st = data.style || {};
     $('edFontFamily').value = st.fontFamily || "'Inter', Arial, sans-serif";
+    $('edSzHeading').value = st.szHeading || '1.05';
     $('edSzTitle').value = st.szTitle || '1.7';
     $('edSzTime').value = st.szTime || '2.4';
     $('edSzMsg').value = st.szMsg || '1.8';
@@ -1147,7 +1180,7 @@ template { display:none; }
     $('edEurRate').value = cu.eurRate || '7.46';
     $('edEurDecimals').value = (cu.eurDecimals === '0' || cu.eurDecimals === 0) ? '0' : '2';
 
-    $('edHeading').value = data.heading || 'Cinema Programme';
+    $('edHeading').value = data.heading || 'Norr\u00f6na Cinema';
     $('edVenue').value = data.ticketsHeading || 'Tickets';
     $('edTimeHeading').value = data.timeHeading || 'Ship Time \u00b7 Faroe';
     $('edMessages').value = (data.messages || []).join('\n\n');
