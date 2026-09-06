@@ -40,7 +40,7 @@ body {
 }
 
 .module-header {
-  text-align:center; font-size: var(--sz-head, 1.05vh); font-weight:700; letter-spacing:.24em;
+  text-align:center; font-size: var(--sz-head-rail, 1.05vh); font-weight:700; letter-spacing:.24em;
   color:#94a3b4; text-transform:uppercase; padding-top:1.7vh;
 }
 /* the cinema name scales on its own, from the back office */
@@ -195,7 +195,7 @@ body {
 
 .fhead {
   flex:0 0 auto;
-  font-size: var(--sz-head, 1vh); font-weight:700; letter-spacing:.24em; color:#94a3b4;
+  font-size: var(--sz-head-bar, 1vh); font-weight:700; letter-spacing:.24em; color:#94a3b4;
   text-transform:uppercase; line-height:1;
   margin-bottom:.8vh; white-space:nowrap;
 }
@@ -236,7 +236,7 @@ body {
 
 .offer-price { font-size: var(--sz-offer, 2.2vh); margin-top:.4vh; }
 .offer-price em { font-size:.55em; }
-.offer-text { line-height:1.15; }
+.offer-text { font-size: var(--sz-offer-text, 1.55vh); line-height:1.15; }
 
 /* ---------- MODES ---------- */
 body.mode-rail .footbar { display:none; }
@@ -383,6 +383,26 @@ input::placeholder { color:#46536a; }
 
 .hint-inline { font-size:11.5px; color:#5b6a80; margin-top:7px; }
 
+/* the size strip lives at the foot of the card whose text it controls,
+   so nobody has to guess where a setting lives */
+.szbar {
+  display:flex; flex-wrap:wrap; align-items:flex-end; gap:14px;
+  margin:20px -24px -22px -24px; padding:14px 24px 16px 24px;
+  border-top:1px solid rgba(148,163,180,0.11);
+  background:rgba(148,163,180,0.03);
+  border-radius:0 0 14px 14px;
+}
+.szbar-label {
+  font-size:10.5px; font-weight:700; letter-spacing:.16em; text-transform:uppercase;
+  color:#5b6a80; padding-bottom:9px; margin-right:2px;
+}
+.sz { flex:0 0 116px; }
+.sz > label {
+  display:flex; align-items:center; gap:5px;
+  font-size:11px; color:#7f8ea3; margin-bottom:6px;
+}
+.sz input { padding:7px 9px; font-size:13px; }
+
 /* --- repeatable rows --- */
 .rows { display:flex; flex-direction:column; gap:8px; }
 .rowlabels {
@@ -477,9 +497,11 @@ template { display:none; }
     "szTag": "1",
     "szClock": "4",
     "szDate": "1.15",
-    "szHead": "1",
+    "szHeadRail": "1.05",
+    "szHeadBar": "1",
     "szPrice": "2.6",
     "szInfo": "1.55",
+    "szOfferText": "1.55",
     "szMsg": "1.8",
     "szOffer": "2.2"
   },
@@ -573,6 +595,20 @@ template { display:none; }
 
       <div class="card">
         <div class="card-head">
+          <h2>Overskrift &#248;verst</h2>
+          <p>Navnet der st&#229;r over programmet.</p>
+        </div>
+        <div class="fields">
+          <div class="field w-half"><label>Tekst</label><input id="edHeading" placeholder="Norr&#246;na Cinema"></div>
+        </div>
+        <div class="szbar">
+          <span class="szbar-label">St&#248;rrelse</span>
+          <div class="sz"><label>Overskrift</label><div class="num"><input id="edSzHeading" type="number" step="0.05" placeholder="1.05"><span class="unit">vh</span></div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
           <h2>Forestillinger</h2>
           <p>Spilletiden i minutter styrer statusbj&#230;lken og hvorn&#229;r en film markeres som slut. Alle tider er skibstid.</p>
         </div>
@@ -588,24 +624,29 @@ template { display:none; }
           <button type="button" class="btn ghost tiny" id="edAddShow">+ Tilf&#248;j forestilling</button>
           <button type="button" class="btn ghost tiny" id="edSortShows">Sort&#233;r efter tid</button>
         </div>
+        <div class="szbar">
+          <span class="szbar-label">St&#248;rrelser</span>
+          <div class="sz"><label>Klokkesl&#230;t</label><div class="num"><input id="edSzTime" type="number" step="0.1" placeholder="2.4"><span class="unit">vh</span></div></div>
+          <div class="sz"><label>Filmtitel</label><div class="num"><input id="edSzTitle" type="number" step="0.1" placeholder="1.7"><span class="unit">vh</span></div></div>
+          <div class="sz"><label>Lyd og l&#230;ngde</label><div class="num"><input id="edSzNote" type="number" step="0.05" placeholder="1.25"><span class="unit">vh</span></div></div>
+          <div class="sz"><label>Status-pille</label><div class="num"><input id="edSzTag" type="number" step="0.05" placeholder="1.0"><span class="unit">vh</span></div></div>
+        </div>
       </div>
 
       <div class="card">
         <div class="card-head">
-          <h2>Tekster i panelet</h2>
-          <p>De to sm&#229; labels: &#248;verst over programmet, og nede over uret.</p>
+          <h2>Ur</h2>
+          <p>Uret viser altid f&#230;r&#248;sk tid, uanset hvad afspilleren st&#229;r p&#229;. Datolinjen skrives af sig selv.</p>
         </div>
         <div class="fields">
-          <div class="field w-half">
-            <label>Overskrift &#248;verst</label>
-            <input id="edHeading" placeholder="Norr&#246;na Cinema">
-          </div>
-          <div class="field w-half">
-            <label>Label over uret</label>
-            <input id="edTimeHeading" placeholder="Ship Time &#183; Faroe">
-          </div>
+          <div class="field w-half"><label>Label over uret</label><input id="edTimeHeading" placeholder="Ship Time &#183; Faroe"></div>
         </div>
-        <div class="hint-inline">Uret viser altid f&#230;r&#248;sk tid, uanset hvad afspilleren st&#229;r p&#229;.</div>
+        <div class="szbar">
+          <span class="szbar-label">St&#248;rrelser</span>
+          <div class="sz"><label>Label</label><div class="num"><input id="edSzHeadRail" type="number" step="0.05" placeholder="1.05"><span class="unit">vh</span></div></div>
+          <div class="sz"><label>Ur</label><div class="num"><input id="edSzClock" type="number" step="0.1" placeholder="4.0"><span class="unit">vh</span></div></div>
+          <div class="sz"><label>Dato</label><div class="num"><input id="edSzDate" type="number" step="0.05" placeholder="1.15"><span class="unit">vh</span></div></div>
+        </div>
       </div>
 
     </div>
@@ -616,7 +657,7 @@ template { display:none; }
       <div class="card">
         <div class="card-head">
           <h2>Billetpriser</h2>
-          <p>Angiv prisen i DKK. Sk&#230;rmen skifter selv mellem DKK og EUR hvert syvende sekund.</p>
+          <p>Angiv prisen i DKK. Sk&#230;rmen skifter selv mellem DKK og EUR hvert syvende sekund. Valutaen st&#229;r automatisk i halv st&#248;rrelse af tallet.</p>
         </div>
         <div class="rowlabels">
           <div class="col-lab">Billettype</div>
@@ -628,6 +669,11 @@ template { display:none; }
         <div class="rowtools">
           <button type="button" class="btn ghost tiny" id="edAddPrice">+ Tilf&#248;j pris</button>
         </div>
+        <div class="szbar">
+          <span class="szbar-label">St&#248;rrelser</span>
+          <div class="sz"><label>Pris</label><div class="num"><input id="edSzPrice" type="number" step="0.1" placeholder="2.6"><span class="unit">vh</span></div></div>
+          <div class="sz"><label>Labels i bunden <span class="help" title="ADULT, CHILD, DOORS, TICKETS og COMBO - de deler st&#248;rrelse, s&#229; bj&#230;lken st&#229;r p&#229; linje">?</span></label><div class="num"><input id="edSzHeadBar" type="number" step="0.05" placeholder="1.0"><span class="unit">vh</span></div></div>
+        </div>
       </div>
 
       <div class="card">
@@ -636,14 +682,12 @@ template { display:none; }
           <p>Det fremh&#230;vede felt i midten. Adskil hvert sprog med en tom linje &#8212; sk&#230;rmen skifter mellem dem hvert 12. sekund. Linjeskift inde i en besked bevares.</p>
         </div>
         <div class="fields">
-          <div class="field w-num">
-            <label>Label over</label>
-            <input id="edVenue" placeholder="Tickets">
-          </div>
-          <div class="field">
-            <label>Beskeder</label>
-            <textarea id="edMessages" rows="7"></textarea>
-          </div>
+          <div class="field w-num"><label>Label over</label><input id="edVenue" placeholder="Tickets"></div>
+          <div class="field"><label>Beskeder</label><textarea id="edMessages" rows="7"></textarea></div>
+        </div>
+        <div class="szbar">
+          <span class="szbar-label">St&#248;rrelse</span>
+          <div class="sz"><label>Besked</label><div class="num"><input id="edSzMsg" type="number" step="0.1" placeholder="1.8"><span class="unit">vh</span></div></div>
         </div>
       </div>
 
@@ -654,14 +698,12 @@ template { display:none; }
             <p>Fast tekst, f.eks. hvorn&#229;r d&#248;rene &#229;bner.</p>
           </div>
           <div class="fields">
-            <div class="field w-full">
-              <label>Label over</label>
-              <input id="edDoorsHead" placeholder="Doors">
-            </div>
-            <div class="field w-full">
-              <label>Tekst</label>
-              <textarea id="edDoorsText" rows="3"></textarea>
-            </div>
+            <div class="field w-full"><label>Label over</label><input id="edDoorsHead" placeholder="Doors"></div>
+            <div class="field w-full"><label>Tekst</label><textarea id="edDoorsText" rows="3"></textarea></div>
+          </div>
+          <div class="szbar">
+            <span class="szbar-label">St&#248;rrelse</span>
+            <div class="sz"><label>Tekst</label><div class="num"><input id="edSzInfo" type="number" step="0.05" placeholder="1.55"><span class="unit">vh</span></div></div>
           </div>
         </div>
 
@@ -671,22 +713,17 @@ template { display:none; }
             <p>Hold prisen i prisfeltet &#8212; ellers bliver den ikke omregnet til EUR.</p>
           </div>
           <div class="fields">
-            <div class="field w-full">
-              <label>Label over</label>
-              <input id="edOffersHead" placeholder="Combo">
-            </div>
-            <div class="field w-full">
-              <label>Tekst</label>
-              <textarea id="edOffersText" rows="2" placeholder="Ticket &amp; Popcorn"></textarea>
-            </div>
-            <div class="field w-num">
-              <label>Pris</label>
-              <input id="edOffersValue" type="number" placeholder="120">
-            </div>
-            <div class="field w-num">
-              <label>Valuta</label>
+            <div class="field w-full"><label>Label over</label><input id="edOffersHead" placeholder="Combo"></div>
+            <div class="field w-full"><label>Tekst</label><textarea id="edOffersText" rows="2" placeholder="Ticket &amp; Popcorn"></textarea></div>
+            <div class="field w-num"><label>Pris</label><input id="edOffersValue" type="number" placeholder="120"></div>
+            <div class="field w-num"><label>Valuta</label>
               <select id="edOffersUnit"><option value="DKK">DKK</option><option value="EUR">EUR</option></select>
             </div>
+          </div>
+          <div class="szbar">
+            <span class="szbar-label">St&#248;rrelser</span>
+            <div class="sz"><label>Tekst</label><div class="num"><input id="edSzOfferText" type="number" step="0.05" placeholder="1.55"><span class="unit">vh</span></div></div>
+            <div class="sz"><label>Pris</label><div class="num"><input id="edSzOffer" type="number" step="0.1" placeholder="2.2"><span class="unit">vh</span></div></div>
           </div>
         </div>
       </div>
@@ -699,7 +736,7 @@ template { display:none; }
       <div class="card">
         <div class="card-head">
           <h2>Skrifttype</h2>
-          <p>G&#230;lder hele sk&#230;rmen.</p>
+          <p>G&#230;lder hele sk&#230;rmen. De enkelte st&#248;rrelser st&#229;r nede i bunden af hvert felt under Sidepanel og Bundbj&#230;lke.</p>
         </div>
         <div class="fields">
           <div class="field w-half">
@@ -713,38 +750,6 @@ template { display:none; }
             </select>
           </div>
         </div>
-      </div>
-
-      <div class="card">
-        <div class="card-head">
-          <h2>Skriftst&#248;rrelser</h2>
-          <p>Alle tal er procent af sk&#230;rmh&#248;jden, s&#229; de holder p&#229; enhver sk&#230;rm. 1,0 svarer til cirka 11 pixels p&#229; en 1080-sk&#230;rm.</p>
-        </div>
-
-        <div class="sizegroup">
-          <h3>Sidepanel</h3>
-          <div class="sizegrid">
-            <div class="field"><label>Biografnavn</label><div class="num"><input id="edSzHeading" type="number" step="0.05" placeholder="1.05"><span class="unit">vh</span></div></div>
-            <div class="field"><label>Klokkesl&#230;t</label><div class="num"><input id="edSzTime" type="number" step="0.1" placeholder="2.4"><span class="unit">vh</span></div></div>
-            <div class="field"><label>Filmtitel</label><div class="num"><input id="edSzTitle" type="number" step="0.1" placeholder="1.7"><span class="unit">vh</span></div></div>
-            <div class="field"><label>Note under titel</label><div class="num"><input id="edSzNote" type="number" step="0.05" placeholder="1.25"><span class="unit">vh</span></div></div>
-            <div class="field"><label>Status-pille</label><div class="num"><input id="edSzTag" type="number" step="0.05" placeholder="1.0"><span class="unit">vh</span></div></div>
-            <div class="field"><label>Ur</label><div class="num"><input id="edSzClock" type="number" step="0.1" placeholder="4.0"><span class="unit">vh</span></div></div>
-            <div class="field"><label>Dato under ur</label><div class="num"><input id="edSzDate" type="number" step="0.05" placeholder="1.15"><span class="unit">vh</span></div></div>
-          </div>
-        </div>
-
-        <div class="sizegroup">
-          <h3>Bundbj&#230;lke</h3>
-          <div class="sizegrid">
-            <div class="field"><label>Sm&#229; labels <span class="help" title="ADULT, CHILD, DOORS, TICKETS og SHIP TIME">?</span></label><div class="num"><input id="edSzHead" type="number" step="0.05" placeholder="1.0"><span class="unit">vh</span></div></div>
-            <div class="field"><label>Priser <span class="help" title="Valutaen f&#248;lger automatisk med som halv st&#248;rrelse">?</span></label><div class="num"><input id="edSzPrice" type="number" step="0.1" placeholder="2.6"><span class="unit">vh</span></div></div>
-            <div class="field"><label>Billetbesked</label><div class="num"><input id="edSzMsg" type="number" step="0.1" placeholder="1.8"><span class="unit">vh</span></div></div>
-            <div class="field"><label>Info- og tilbudstekst</label><div class="num"><input id="edSzInfo" type="number" step="0.05" placeholder="1.55"><span class="unit">vh</span></div></div>
-            <div class="field"><label>Tilbudspris</label><div class="num"><input id="edSzOffer" type="number" step="0.1" placeholder="2.2"><span class="unit">vh</span></div></div>
-          </div>
-        </div>
-
         <div class="rowtools">
           <button type="button" class="btn ghost tiny" id="edResetSizes">Nulstil alle st&#248;rrelser</button>
         </div>
@@ -1201,9 +1206,13 @@ template { display:none; }
     document.body.style.setProperty('--sz-tag', (st.szTag || 1.0) + 'vh');
     document.body.style.setProperty('--sz-clock', (st.szClock || 4.0) + 'vh');
     document.body.style.setProperty('--sz-date', (st.szDate || 1.15) + 'vh');
-    document.body.style.setProperty('--sz-head', (st.szHead || 1.0) + 'vh');
+    /* szHead and szInfo are the old shared settings - kept as fallbacks so
+       data saved before the split still renders the same */
+    document.body.style.setProperty('--sz-head-rail', (st.szHeadRail || st.szHead || 1.05) + 'vh');
+    document.body.style.setProperty('--sz-head-bar', (st.szHeadBar || st.szHead || 1.0) + 'vh');
     document.body.style.setProperty('--sz-price', (st.szPrice || 2.6) + 'vh');
     document.body.style.setProperty('--sz-info', (st.szInfo || 1.55) + 'vh');
+    document.body.style.setProperty('--sz-offer-text', (st.szOfferText || st.szInfo || 1.55) + 'vh');
     document.body.style.setProperty('--sz-msg', (st.szMsg || 1.8) + 'vh');
     document.body.style.setProperty('--sz-offer', (st.szOffer || 2.2) + 'vh');
 
@@ -1267,8 +1276,9 @@ template { display:none; }
 
   var SIZE_DEFAULTS = {
     edSzHeading: '1.05', edSzTime: '2.4', edSzTitle: '1.7', edSzNote: '1.25',
-    edSzTag: '1', edSzClock: '4', edSzDate: '1.15',
-    edSzHead: '1', edSzPrice: '2.6', edSzMsg: '1.8', edSzInfo: '1.55', edSzOffer: '2.2'
+    edSzTag: '1', edSzClock: '4', edSzDate: '1.15', edSzHeadRail: '1.05',
+    edSzHeadBar: '1', edSzPrice: '2.6', edSzMsg: '1.8', edSzInfo: '1.55',
+    edSzOfferText: '1.55', edSzOffer: '2.2'
   };
   function resetSizes() {
     for (var id in SIZE_DEFAULTS) {
@@ -1381,9 +1391,11 @@ template { display:none; }
         szTag: val('edSzTag', '1'),
         szClock: val('edSzClock', '4'),
         szDate: val('edSzDate', '1.15'),
-        szHead: val('edSzHead', '1'),
+        szHeadRail: val('edSzHeadRail', '1.05'),
+        szHeadBar: val('edSzHeadBar', '1'),
         szPrice: val('edSzPrice', '2.6'),
         szInfo: val('edSzInfo', '1.55'),
+        szOfferText: val('edSzOfferText', '1.55'),
         szMsg: val('edSzMsg', '1.8'),
         szOffer: val('edSzOffer', '2.2')
       },
@@ -1487,9 +1499,11 @@ template { display:none; }
     $('edSzTag').value = st.szTag || '1';
     $('edSzClock').value = st.szClock || '4';
     $('edSzDate').value = st.szDate || '1.15';
-    $('edSzHead').value = st.szHead || '1';
+    $('edSzHeadRail').value = st.szHeadRail || st.szHead || '1.05';
+    $('edSzHeadBar').value = st.szHeadBar || st.szHead || '1';
     $('edSzPrice').value = st.szPrice || '2.6';
     $('edSzInfo').value = st.szInfo || '1.55';
+    $('edSzOfferText').value = st.szOfferText || st.szInfo || '1.55';
     $('edSzMsg').value = st.szMsg || '1.8';
     $('edSzOffer').value = st.szOffer || '2.2';
 
