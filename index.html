@@ -313,10 +313,12 @@ body.mode-edit { overflow:auto; }
 
 /* --- tabs --- */
 .tabs {
+  position:relative; z-index:40;
   max-width:1080px; margin:0 auto; padding:16px 28px 0 28px;
   display:flex; gap:4px;
 }
 .tabbtn {
+  position:relative; z-index:1;
   background:transparent; border:none; cursor:pointer;
   font-family:inherit; font-size:13.5px; font-weight:500; color:#7f8ea3;
   padding:10px 16px 13px 16px; border-bottom:2px solid transparent;
@@ -539,7 +541,7 @@ template { display:none; }
   <div class="footbar" id="uiFootbar"></div>
 </div>
 
-<button class="backbtn" id="uiBack">Tilbage til editor</button>
+<button type="button" class="backbtn" id="uiBack">Tilbage til editor</button>
 
 <div class="editor">
 
@@ -552,15 +554,15 @@ template { display:none; }
       <div class="ed-spacer"></div>
       <div class="ed-actions">
         <div class="ed-status" id="edStatus"></div>
-        <button class="btn ghost" id="edPreview">Se sk&#230;rmen</button>
-        <button class="btn" id="edSave">Synkronis&#233;r</button>
+        <button type="button" class="btn ghost" id="edPreview">Se sk&#230;rmen</button>
+        <button type="button" class="btn" id="edSave">Synkronis&#233;r</button>
       </div>
     </div>
     <div class="tabs">
-      <button class="tabbtn is-on" data-tab="rail">Sidepanel</button>
-      <button class="tabbtn" data-tab="bar">Bundbj&#230;lke</button>
-      <button class="tabbtn" data-tab="look">Udseende</button>
-      <button class="tabbtn" data-tab="adv">Avanceret</button>
+      <button type="button" class="tabbtn is-on" data-tab="rail">Sidepanel</button>
+      <button type="button" class="tabbtn" data-tab="bar">Bundbj&#230;lke</button>
+      <button type="button" class="tabbtn" data-tab="look">Udseende</button>
+      <button type="button" class="tabbtn" data-tab="adv">Avanceret</button>
     </div>
   </div>
 
@@ -583,8 +585,8 @@ template { display:none; }
         </div>
         <div class="rows" id="edShows"></div>
         <div class="rowtools">
-          <button class="btn ghost tiny" id="edAddShow">+ Tilf&#248;j forestilling</button>
-          <button class="btn ghost tiny" id="edSortShows">Sort&#233;r efter tid</button>
+          <button type="button" class="btn ghost tiny" id="edAddShow">+ Tilf&#248;j forestilling</button>
+          <button type="button" class="btn ghost tiny" id="edSortShows">Sort&#233;r efter tid</button>
         </div>
       </div>
 
@@ -624,7 +626,7 @@ template { display:none; }
         </div>
         <div class="rows" id="edPrices"></div>
         <div class="rowtools">
-          <button class="btn ghost tiny" id="edAddPrice">+ Tilf&#248;j pris</button>
+          <button type="button" class="btn ghost tiny" id="edAddPrice">+ Tilf&#248;j pris</button>
         </div>
       </div>
 
@@ -744,7 +746,7 @@ template { display:none; }
         </div>
 
         <div class="rowtools">
-          <button class="btn ghost tiny" id="edResetSizes">Nulstil alle st&#248;rrelser</button>
+          <button type="button" class="btn ghost tiny" id="edResetSizes">Nulstil alle st&#248;rrelser</button>
         </div>
       </div>
 
@@ -794,7 +796,7 @@ template { display:none; }
           <h2>Nulstil</h2>
           <p>Henter testprogrammet der ligger i selve filen. Det du har st&#229;ende bliver kun overskrevet her i browseren &#8212; sk&#230;rmen &#230;ndrer sig f&#248;rst n&#229;r du synkroniserer.</p>
         </div>
-        <button class="btn ghost tiny" id="edReset">Indl&#230;s testprogram</button>
+        <button type="button" class="btn ghost tiny" id="edReset">Indl&#230;s testprogram</button>
       </div>
 
     </div>
@@ -817,7 +819,7 @@ template { display:none; }
       </select>
     </div>
     <div class="col-min"><input class="js-dur" type="number" placeholder="95"></div>
-    <div class="col-del"><button class="iconbtn js-del" title="Fjern">&#215;</button></div>
+    <div class="col-del"><button type="button" class="iconbtn js-del" title="Fjern">&#215;</button></div>
   </div>
 </template>
 
@@ -839,7 +841,7 @@ template { display:none; }
         <option value="EUR">EUR</option>
       </select>
     </div>
-    <div class="col-del"><button class="iconbtn js-del" title="Fjern">&#215;</button></div>
+    <div class="col-del"><button type="button" class="iconbtn js-del" title="Fjern">&#215;</button></div>
   </div>
 </template>
 
@@ -1261,6 +1263,69 @@ template { display:none; }
     n.className = 'ed-status' + (cls ? ' ' + cls : '');
     txt(n, text || '');
   }
+  function dirty() { status('Ikke synkroniseret', 'dirty'); }
+
+  var SIZE_DEFAULTS = {
+    edSzHeading: '1.05', edSzTime: '2.4', edSzTitle: '1.7', edSzNote: '1.25',
+    edSzTag: '1', edSzClock: '4', edSzDate: '1.15',
+    edSzHead: '1', edSzPrice: '2.6', edSzMsg: '1.8', edSzInfo: '1.55', edSzOffer: '2.2'
+  };
+  function resetSizes() {
+    for (var id in SIZE_DEFAULTS) {
+      if (SIZE_DEFAULTS.hasOwnProperty(id)) { $(id).value = SIZE_DEFAULTS[id]; }
+    }
+    buildJson();
+    dirty();
+  }
+
+  /* The tabs mirror the screen: side panel, bottom bar, looks, plumbing.
+     Handled by delegation on the editor itself, so a click anywhere on or
+     inside a tab button counts, whatever the browser hands us as target. */
+  function showTab(name) {
+    var panes = document.getElementsByClassName('tabpane');
+    var btns = document.getElementsByClassName('tabbtn');
+    var k;
+    for (k = 0; k < panes.length; k++) {
+      panes[k].className = 'tabpane' + (panes[k].getAttribute('data-pane') === name ? ' is-on' : '');
+    }
+    for (k = 0; k < btns.length; k++) {
+      btns[k].className = 'tabbtn' + (btns[k].getAttribute('data-tab') === name ? ' is-on' : '');
+    }
+  }
+
+  function bindTabs() {
+    var editor = document.getElementsByClassName('editor')[0];
+    if (!editor) { return; }
+
+    function onClick(e) {
+      var node = e.target || e.srcElement;
+      var name = null;
+      /* walk up until we find the tab, or leave the editor */
+      while (node && node !== editor) {
+        if (node.getAttribute) {
+          name = node.getAttribute('data-tab');
+          if (name) { break; }
+        }
+        node = node.parentNode;
+      }
+      if (!name) { return; }
+      showTab(name);
+      if (e.preventDefault) { e.preventDefault(); }
+      return false;
+    }
+
+    if (editor.addEventListener) { editor.addEventListener('click', onClick, false); }
+    else if (editor.attachEvent) { editor.attachEvent('onclick', onClick); }
+
+    /* belt and braces: direct handlers too */
+    var btns = document.getElementsByClassName('tabbtn');
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].onclick = (function (name) {
+        return function () { showTab(name); return false; };
+      })(btns[i].getAttribute('data-tab'));
+    }
+    showTab('rail');
+  }
 
   function addRow(tplId, hostId, cls, fill) {
     var tpl = $(tplId);
@@ -1273,7 +1338,7 @@ template { display:none; }
     q(row, '.js-del').onclick = function () {
       row.parentNode.removeChild(row);
       buildJson();
-      status('Ikke gemt', '');
+      dirty();
     };
   }
 
@@ -1457,7 +1522,7 @@ template { display:none; }
     if (!(data.shows || []).length) { addShowRow(null); }
     if (!(data.prices || []).length) { addPriceRow(null); }
     buildJson();
-    status('', '');
+    status('Alt synkroniseret', '');
   }
 
   function stopTimers() {
@@ -1467,12 +1532,14 @@ template { display:none; }
   function every(fn, ms) { timers.push(window.setInterval(fn, ms)); }
 
   function bindEditorEvents() {
-    $('edAddShow').onclick = function () { addShowRow(null); buildJson(); status('Ikke gemt', ''); };
-    $('edAddPrice').onclick = function () { addPriceRow(null); buildJson(); status('Ikke gemt', ''); };
+    bindTabs();
+    $('edAddShow').onclick = function () { addShowRow(null); buildJson(); dirty(); };
+    $('edAddPrice').onclick = function () { addPriceRow(null); buildJson(); dirty(); };
     $('edSortShows').onclick = sortShows;
+    $('edResetSizes').onclick = resetSizes;
 
     $('edReset').onclick = function () {
-      if (window.confirm('Erstat det nuvaerende indhold med testprogrammet?')) {
+      if (window.confirm('Erstat det du har staaende med testprogrammet?')) {
         data = readLocal();
         startEditor();
       }
@@ -1482,7 +1549,7 @@ template { display:none; }
       buildJson();
       var btn = $('edSave');
       btn.disabled = true;
-      status('Gemmer...', '');
+      status('Synkroniserer...', '');
       var xhr = new XMLHttpRequest();
       xhr.open('POST', REMOTE_URL, true);
       xhr.setRequestHeader('Content-Type', 'application/json');
@@ -1490,9 +1557,9 @@ template { display:none; }
         if (xhr.readyState !== 4) { return; }
         btn.disabled = false;
         if (xhr.status >= 200 && xhr.status < 300) {
-          status('Gemt ' + clockOf(nowMinutes()), 'ok');
+          status('Synkroniseret ' + clockOf(nowMinutes()), 'ok');
         } else {
-          status('Kunne ikke gemme (' + xhr.status + ')', 'err');
+          status('Synkronisering fejlede (' + xhr.status + ')', 'err');
         }
       };
       xhr.onerror = function () {
@@ -1520,8 +1587,8 @@ template { display:none; }
     };
 
     var ed = document.getElementsByClassName('editor')[0];
-    ed.onkeyup = function () { buildJson(); status('Ikke gemt', ''); };
-    ed.onchange = function () { buildJson(); status('Ikke gemt', ''); };
+    ed.onkeyup = function () { buildJson(); dirty(); };
+    ed.onchange = function () { buildJson(); dirty(); };
   }
 
   /* ---------------- start ---------------- */
