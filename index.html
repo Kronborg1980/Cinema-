@@ -678,6 +678,27 @@ template { display:none; }
   function q(el, sel) { return el.querySelector(sel); }
   function pad(n) { return n < 10 ? '0' + n : '' + n; }
 
+  /* ---------------- ship time ----------------
+     Always Faroe Islands time, worked out from UTC, so the screen is
+     right whatever the player's own clock and timezone are set to.
+     EU rule: summer time runs from the last Sunday in March 01:00 UTC
+     to the last Sunday in October 01:00 UTC. */
+  function lastSundayUTC(year, monthIndex) {
+    var lastDay = new Date(Date.UTC(year, monthIndex + 1, 0));
+    return lastDay.getUTCDate() - lastDay.getUTCDay();
+  }
+  function isFaroeDST(ms) {
+    var year = new Date(ms).getUTCFullYear();
+    var start = Date.UTC(year, 2, lastSundayUTC(year, 2), 1, 0, 0);
+    var end = Date.UTC(year, 9, lastSundayUTC(year, 9), 1, 0, 0);
+    return ms >= start && ms < end;
+  }
+  /* Read this date with the getUTC* methods - the offset is already in it. */
+  function faroeNow() {
+    var ms = (new Date()).getTime();
+    return new Date(ms + (isFaroeDST(ms) ? 3600000 : 0));
+  }
+
   function lines(node, s) {
     while (node.firstChild) { node.removeChild(node.firstChild); }
     var parts = ('' + (s || '')).split('\n');
@@ -738,8 +759,8 @@ template { display:none; }
     return h * 60 + m;
   }
   function nowMinutes() {
-    var d = new Date();
-    return d.getHours() * 60 + d.getMinutes();
+    var d = faroeNow();
+    return d.getUTCHours() * 60 + d.getUTCMinutes();
   }
   function clockOf(mins) {
     var m = ((mins % 1440) + 1440) % 1440;
@@ -930,16 +951,15 @@ template { display:none; }
   }
 
   function renderClock() {
-    var d = new Date();
-    txt($('uiClock'), pad(d.getHours()) + ':' + pad(d.getMinutes()));
+    var d = faroeNow();
+    txt($('uiClock'), pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes()));
 
     var days = data.days || ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
     var months = data.months || ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
-    var offset = -(d.getTimezoneOffset() / 60);
-    var gmtStr = 'GMT' + (offset >= 0 ? '+' : '') + offset;
-    var dateString = days[d.getDay()].toUpperCase() + ', ' + d.getDate() + ' ' +
-      months[d.getMonth()].toUpperCase() + ' ' + String.fromCharCode(183) + ' ' + gmtStr;
+    var gmtStr = 'GMT' + (isFaroeDST((new Date()).getTime()) ? '+1' : '+0');
+    var dateString = days[d.getUTCDay()].toUpperCase() + ', ' + d.getUTCDate() + ' ' +
+      months[d.getUTCMonth()].toUpperCase() + ' ' + String.fromCharCode(183) + ' ' + gmtStr;
     txt($('uiDate'), dateString);
   }
 
@@ -1342,8 +1362,8 @@ template { display:none; }
       }, REMOTE_REFRESH_MS);
 
       every(function () {
-        var d = new Date();
-        if (d.getHours() === 3 && d.getMinutes() === 0) { window.location.reload(); }
+        var d = faroeNow();
+        if (d.getUTCHours() === 3 && d.getUTCMinutes() === 0) { window.location.reload(); }
       }, 60000);
     });
   }
